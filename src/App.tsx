@@ -28,6 +28,7 @@ import {
 import Leaderboard from "./components/Leaderboard";
 import Referral from "./components/Referral";
 import { ReferralUser } from "./types/user";
+import { useReferral } from "./hooks/useReferral";
 
 interface LeaderboardUser {
   username: string;
@@ -92,6 +93,7 @@ const App: React.FC = () => {
     "main" | "leaderboard" | "referral"
   >("main");
 
+  const { referrals, refetch: refetchReferrals } = useReferral(user?.username);
   const [referralData, setReferralData] = useState<{
     referralCode: string;
     referrals: ReferralUser[];
@@ -108,16 +110,16 @@ const App: React.FC = () => {
         const data = await getLeaderboard(10);
         setLeaderboard(data);
       } else if (activeTab === "referral") {
-        const refs = await getReferrals(user.username);
+        await refetchReferrals();
         setReferralData({
           referralCode: user.username,
-          referrals: refs || [],
+          referrals: referrals,
         });
       }
     } catch (error) {
       console.error("Error fetching tab data:", error);
     }
-  }, [activeTab, user?.username]);
+  }, [activeTab, user?.username, refetchReferrals, referrals]);
 
   const handleTabChange = (tab: "main" | "leaderboard" | "referral") => {
     setActiveTab(tab);
