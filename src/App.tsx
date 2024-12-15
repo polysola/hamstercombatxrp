@@ -130,10 +130,12 @@ const App: React.FC = () => {
         console.log("Telegram initDataUnsafe:", tg.initDataUnsafe);
         console.log("Current user:", telegramUser);
 
-        // Lấy start_param từ Telegram WebApp
+        // Lấy start_param từ nhiều nguồn khác nhau
+        const urlParams = new URLSearchParams(window.location.search);
         const startParam =
           tg?.initDataUnsafe?.start_param ||
-          new URLSearchParams(window.location.search).get("tgWebAppStartParam");
+          urlParams.get("tgWebAppStartParam") ||
+          urlParams.get("startapp");
 
         console.log("Start param:", startParam);
 
