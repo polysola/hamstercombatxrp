@@ -214,31 +214,28 @@ export const processReferralReward = async (referral: string, amount: number) =>
 
 export const handleStartParameter = () => {
     try {
-        // Lấy URL hiện tại
+        // Lấy URL hiện tại và hash
         const currentUrl = window.location.href;
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
         console.log('Current URL:', currentUrl);
+        console.log('Hash params:', Object.fromEntries(hashParams.entries()));
 
-        // Kiểm tra xem có phải từ bot command không
-        if (currentUrl.includes('?command=start')) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const command = urlParams.get('command');
-            const param = urlParams.get('parameter');
+        // Lấy tgWebAppData từ hash
+        const webAppData = hashParams.get('tgWebAppData');
+        if (webAppData) {
+            // Decode URL-encoded data
+            const decodedData = decodeURIComponent(webAppData);
+            console.log('Decoded WebApp data:', decodedData);
 
-            if (command === 'start' && param) {
-                console.log('Found start parameter:', param);
-                // Lưu vào localStorage
-                localStorage.setItem('referral_code', param);
-                return param;
+            // Parse các tham số từ tgWebAppData
+            const webAppParams = new URLSearchParams(decodedData);
+
+            // Kiểm tra start_param trong tgWebAppData
+            const startParam = webAppParams.get('start_param');
+            if (startParam) {
+                console.log('Found start_param in WebApp data:', startParam);
+                return startParam;
             }
-        }
-
-        // Kiểm tra xem có tham số tgWebAppStartParam không
-        const urlParams = new URLSearchParams(window.location.search);
-        const startParam = urlParams.get('tgWebAppStartParam');
-        if (startParam) {
-            console.log('Found tgWebAppStartParam:', startParam);
-            localStorage.setItem('referral_code', startParam);
-            return startParam;
         }
 
         // Kiểm tra localStorage
@@ -248,6 +245,14 @@ export const handleStartParameter = () => {
             // Xóa code sau khi đã sử dụng
             localStorage.removeItem('referral_code');
             return savedCode;
+        }
+
+        // Kiểm tra URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlStartParam = urlParams.get('tgWebAppStartParam') || urlParams.get('start_param');
+        if (urlStartParam) {
+            console.log('Found start param in URL:', urlStartParam);
+            return urlStartParam;
         }
 
         return null;
