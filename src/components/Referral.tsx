@@ -26,6 +26,29 @@ const Referral: React.FC<ReferralProps> = ({
     toast.success("Referral link copied!");
   };
 
+  const ReferralStats = () => {
+    const totalEarned = users.reduce(
+      (sum, user) => sum + (user.earnedFromRef || 0),
+      0
+    );
+    const totalReferrals = users.length;
+
+    return (
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="bg-[#1c1f24] p-3 rounded-lg text-center">
+          <p className="text-sm text-[#85827d]">Total Referrals</p>
+          <p className="text-lg text-[#f3ba2f]">{totalReferrals}</p>
+        </div>
+        <div className="bg-[#1c1f24] p-3 rounded-lg text-center">
+          <p className="text-sm text-[#85827d]">Total Earned</p>
+          <p className="text-lg text-[#f3ba2f]">
+            +{totalEarned.toLocaleString()}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   if (!users.length) {
     return (
       <div className="bg-[#272a2f] rounded-lg p-4">
@@ -86,6 +109,8 @@ const Referral: React.FC<ReferralProps> = ({
           </div>
         ))}
       </div>
+
+      <ReferralStats />
     </div>
   );
 };

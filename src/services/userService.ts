@@ -12,12 +12,6 @@ interface UserScore {
     totalRefEarnings: number;  // tổng thu nhập từ ref
 }
 
-interface ReferralUser {
-    username: string;
-    score: number;
-    photoUrl?: string;
-    earnedFromRef: number;
-}
 
 export const saveUserScore = async (
     username: string,
