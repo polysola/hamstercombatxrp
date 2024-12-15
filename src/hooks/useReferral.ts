@@ -7,6 +7,19 @@ export const useReferral = (username: string | undefined) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const validateAPIResponse = (data: any): data is APIReferralUser[] => {
+        if (!Array.isArray(data)) return false;
+        return data.every(item =>
+            typeof item === 'object' &&
+            typeof item.username === 'string' &&
+            typeof item.score === 'number' &&
+            typeof item.levelMin === 'number' &&
+            typeof item.lastUpdated === 'string' &&
+            typeof item.referralCode === 'string' &&
+            typeof item.totalRefEarnings === 'number'
+        );
+    };
+
     const processReferralData = (data: APIReferralUser[]): ReferralUser[] => {
         console.log('Processing referral data:', data);
 
@@ -26,28 +39,30 @@ export const useReferral = (username: string | undefined) => {
             const referrals = referralMap.get(user.username) || [];
             const referralCount = referrals.length;
 
-            // Tính toán earnings
+            // Tính toán earnings từ referrals trực tiếp
             const earnedFromRef = user.totalRefEarnings || 0;
+
+            // Tính tổng earnings (bao gồm cả bonus)
             let totalEarned = earnedFromRef;
 
-            // Nếu người này có referrals, tính thêm bonus
+            // Nếu người này có referrals, tính thêm bonus từ điểm của người được giới thiệu
             if (referralCount > 0) {
-                // Tìm tổng earnings từ những người được giới thiệu
-                const referralEarnings = referrals.reduce((sum, refUsername) => {
+                const referralScores = referrals.reduce((sum, refUsername) => {
                     const refUser = data.find(u => u.username === refUsername);
                     return sum + (refUser?.score || 0);
                 }, 0);
 
-                // Tính bonus (5% từ mỗi người được giới thiệu)
-                const bonus = referralEarnings * 0.05;
+                // Bonus là 5% từ điểm của mỗi người được giới thiệu
+                const bonus = Math.floor(referralScores * 0.05);
                 totalEarned += bonus;
             }
 
-            console.log(`User ${user.username}:`, {
+            console.log(`User ${user.username} stats:`, {
                 referralCount,
                 earnedFromRef,
                 totalEarned,
-                referrals
+                referrals,
+                totalRefEarnings: user.totalRefEarnings
             });
 
             return {
@@ -71,17 +86,16 @@ export const useReferral = (username: string | undefined) => {
 
         try {
             console.log('Fetching referrals for:', username);
-            const data = await getReferrals(username);
+            const rawData = await getReferrals(username);
+            console.log('Raw API data:', rawData);
 
-            if (!Array.isArray(data)) {
-                console.error('Invalid data format:', data);
+            if (!validateAPIResponse(rawData)) {
+                console.error('Invalid data format:', rawData);
                 throw new Error('Invalid data format from API');
             }
 
-            console.log('Raw API data:', data);
-
             // Xử lý dữ liệu và tính toán earnings
-            const processedData = processReferralData(data as APIReferralUser[]);
+            const processedData = processReferralData(rawData);
 
             // Sắp xếp theo earnings từ cao đến thấp
             processedData.sort((a, b) => b.totalEarned - a.totalEarned);

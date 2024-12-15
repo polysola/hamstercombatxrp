@@ -5,21 +5,14 @@ export interface APIReferralUser {
     photoUrl?: string;
     levelMin: number;
     lastUpdated: string;
-    referralCode: string;
+    referralCode?: string;
     referrer?: string;
     totalRefEarnings: number;
+    earnedFromRef?: number;
 }
 
 // Interface cho dữ liệu đã được xử lý
-export interface ReferralUser {
-    username: string;
-    score: number;
-    photoUrl?: string;
-    levelMin: number;
-    lastUpdated: string;
-    referralCode: string;
-    referrer?: string;
-    totalRefEarnings: number;
+export interface ReferralUser extends APIReferralUser {
     earnedFromRef: number;
     referrals: string[];
     referralCount: number;

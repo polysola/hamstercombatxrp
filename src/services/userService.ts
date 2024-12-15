@@ -100,7 +100,11 @@ export const getReferrals = async (username: string) => {
                 username: data.username,
                 score: data.score,
                 photoUrl: data.photoUrl,
-                earnedFromRef: data.totalRefEarnings
+                levelMin: data.levelMin,
+                lastUpdated: data.lastUpdated,
+                referralCode: data.referralCode,
+                referrer: data.referrer,
+                totalRefEarnings: data.totalRefEarnings
             };
         });
 
