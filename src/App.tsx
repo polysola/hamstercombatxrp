@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./App.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import Hamster from "./icons/Hamster";
 import {
   binanceLogo,
   dailyCipher,
@@ -16,13 +15,11 @@ import {
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
 import Mine from "./icons/Mine";
-// import Friends from "./icons/Mine";
 import Coins from "./icons/Coins";
 import {
   saveUserScore,
   getUserScore,
   getLeaderboard,
-  getReferrals,
   setReferrer,
 } from "./services/userService";
 import Leaderboard from "./components/Leaderboard";
