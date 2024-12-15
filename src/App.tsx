@@ -79,18 +79,23 @@ const App: React.FC = () => {
         const savedScore = await getUserScore(telegramUser.username);
         if (savedScore) {
           setPoints(savedScore.score);
-        } else {
-          await saveUserScore(
-            telegramUser.username,
-            points,
-            levelMinPoints[levelIndex]
+          const newLevelIndex = levelMinPoints.findIndex(
+            (min, index) =>
+              savedScore.score >= min &&
+              (index === levelMinPoints.length - 1 ||
+                savedScore.score < levelMinPoints[index + 1])
           );
+          setLevelIndex(newLevelIndex !== -1 ? newLevelIndex : 0);
+        } else {
+          setPoints(1000);
+          setLevelIndex(0);
+          await saveUserScore(telegramUser.username, 1000, levelMinPoints[0]);
         }
       };
 
       initializeUserScore();
     }
-  }, [points, levelIndex, levelMinPoints]);
+  }, []);
 
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();
@@ -210,14 +215,6 @@ const App: React.FC = () => {
     if (profit >= 1000) return `+${(profit / 1000).toFixed(2)}K`;
     return `+${profit}`;
   };
-
-  useEffect(() => {
-    const pointsPerSecond = Math.floor(profitPerHour / 3600);
-    const interval = setInterval(() => {
-      setPoints((prevPoints) => prevPoints + pointsPerSecond);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [profitPerHour]);
 
   const notify = () => toast("🕔 Coming Soon!");
 
