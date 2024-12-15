@@ -68,6 +68,9 @@ const App: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  const [autoIncrementTimer, setAutoIncrementTimer] =
+    useState<NodeJS.Timer | null>(null);
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -249,6 +252,48 @@ const App: React.FC = () => {
   };
 
   const notify = () => toast("🕔 Coming Soon!");
+
+  useEffect(() => {
+    if (!user) return; // Chỉ bắt đầu tăng điểm khi đã có user
+
+    const pointsPerSecond = Math.floor(profitPerHour / 3600);
+    const incrementInterval = setInterval(() => {
+      setPoints((prevPoints) => {
+        const newPoints = prevPoints + pointsPerSecond;
+
+        // Lưu điểm số mới vào database sau 5 giây
+        if (saveTimeout) {
+          clearTimeout(saveTimeout);
+        }
+
+        const timeout = setTimeout(async () => {
+          if (user?.username) {
+            await saveUserScore(
+              user.username,
+              newPoints,
+              levelMinPoints[levelIndex]
+            );
+          }
+        }, 5000);
+
+        setSaveTimeout(timeout);
+
+        return newPoints;
+      });
+    }, 1000);
+
+    setAutoIncrementTimer(incrementInterval);
+
+    // Cleanup function
+    return () => {
+      if (autoIncrementTimer) {
+        clearInterval(autoIncrementTimer);
+      }
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+      }
+    };
+  }, [user, levelIndex, profitPerHour]);
 
   return (
     <div className="bg-black flex justify-center">
