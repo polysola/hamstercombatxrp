@@ -1,0 +1,17 @@
+{
+    "name": "Rabbit on Sui Game",
+    "version": "1.0.0",
+    "description": "A jumping rabbit game on Sui blockchain",
+    "author": "Your Name",
+    "avatar": "logo.png",
+    "permissions": [
+        "user_info",
+        "web_app_data",
+        "web_app_set_background_color"
+    ],
+    "bot_username": "your_bot_username",
+    "platform": "all",
+    "viewport_height": "100vh",
+    "viewport_width": "100%",
+    "background_color": "#000000"
+}
