@@ -21,7 +21,7 @@ const Referral: React.FC<ReferralProps> = ({
 }) => {
   const handleCopyLink = () => {
     const botUsername = "HamterCombatXrp_bot";
-    const botLink = `https://t.me/${botUsername}?start=${referralCode}`;
+
     const miniAppLink = `https://t.me/${botUsername}/miniapp?tgWebAppStartParam=${referralCode}`;
 
     navigator.clipboard.writeText(miniAppLink);
