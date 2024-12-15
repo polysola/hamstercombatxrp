@@ -22,8 +22,13 @@ export const saveUserScore = async (
         const tg = window.Telegram?.WebApp;
         const photoUrl = tg?.initDataUnsafe?.user?.photo_url;
 
-        // Get existing user data first
         const existingData = await getUserScore(username);
+        const scoreDiff = score - (existingData?.score || 0);
+
+        // Nếu điểm tăng, xử lý phần thưởng ref
+        if (scoreDiff > 0) {
+            await processReferralReward(username, scoreDiff);
+        }
 
         const userData: UserScore = {
             username,
@@ -32,7 +37,7 @@ export const saveUserScore = async (
             photoUrl: photoUrl || existingData?.photoUrl || "/src/images/suit.png",
             lastUpdated: new Date().toISOString(),
             referrer: existingData?.referrer || "",
-            referralCode: username,  // Use username as referral code
+            referralCode: username,
             totalRefEarnings: existingData?.totalRefEarnings || 0
         };
 
@@ -109,19 +114,44 @@ export const getReferrals = async (username: string) => {
 export const setReferrer = async (username: string, referrerCode: string) => {
     try {
         const userData = await getUserScore(username);
-        if (!userData || userData.referrer) return false;  // Already has referrer
+        if (!userData || userData.referrer) return false;  // Đã có người giới thiệu
 
         const referrer = await getUserScore(referrerCode);
-        if (!referrer) return false;  // Invalid referrer
+        if (!referrer) return false;  // Người giới thiệu không tồn tại
 
+        // Cập nhật thông tin người được giới thiệu
         await setDoc(doc(db, "DataXRP", username), {
             ...userData,
-            referrer: referrerCode
+            referrer: referrerCode,
+            totalRefEarnings: 0
         });
 
         return true;
     } catch (error) {
         console.error("Error setting referrer:", error);
         return false;
+    }
+};
+
+export const processReferralReward = async (referral: string, amount: number) => {
+    try {
+        // Lấy thông tin người được giới thiệu
+        const referralUser = await getUserScore(referral);
+        if (!referralUser?.referrer) return;
+
+        // Tính toán phần thưởng (5% earnings)
+        const reward = Math.floor(amount * 0.05);
+
+        // Cập nhật số dư và tổng thu nhập từ ref cho người giới thiệu
+        const referrer = await getUserScore(referralUser.referrer);
+        if (referrer) {
+            await setDoc(doc(db, "DataXRP", referralUser.referrer), {
+                ...referrer,
+                score: referrer.score + reward,
+                totalRefEarnings: (referrer.totalRefEarnings || 0) + reward
+            });
+        }
+    } catch (error) {
+        console.error("Error processing referral reward:", error);
     }
 };
