@@ -31,10 +31,11 @@ const Referral: React.FC<ReferralProps> = ({
   };
 
   const ReferralStats = () => {
-    const totalReferrals = users.length;
-    const totalEarned = users.reduce((sum, user) => {
-      return sum + (user.totalRefEarnings || 0);
-    }, 0);
+    const totalReferrals = users.reduce(
+      (sum, user) => sum + user.referralCount,
+      0
+    );
+    const totalEarned = users.reduce((sum, user) => sum + user.totalEarned, 0);
 
     return (
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -56,6 +57,7 @@ const Referral: React.FC<ReferralProps> = ({
           </div>
           <p className="text-sm text-[#85827d] mb-1">Total Referrals</p>
           <p className="text-2xl font-bold text-[#f3ba2f]">{totalReferrals}</p>
+          <p className="text-xs text-[#85827d] mt-1">Direct: {users.length}</p>
         </div>
         <div className="bg-gradient-to-br from-[#1c1f24] to-[#272a2f] p-4 rounded-xl text-center shadow-lg">
           <div className="bg-[#f3ba2f]/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -77,6 +79,7 @@ const Referral: React.FC<ReferralProps> = ({
           <p className="text-2xl font-bold text-[#f3ba2f]">
             +{totalEarned.toLocaleString()}
           </p>
+          <p className="text-xs text-[#85827d] mt-1">From all levels</p>
         </div>
       </div>
     );
@@ -151,16 +154,32 @@ const Referral: React.FC<ReferralProps> = ({
                 </div>
                 <div>
                   <p className="text-white font-medium">{user.username}</p>
-                  <p className="text-xs text-[#85827d]">
-                    {formatDate(user.lastUpdated)}
-                  </p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-xs text-[#85827d]">
+                      {formatDate(user.lastUpdated)}
+                    </p>
+                    {user.referralCount > 0 && (
+                      <span className="text-xs bg-[#f3ba2f]/10 text-[#f3ba2f] px-2 py-0.5 rounded-full">
+                        {user.referralCount} refs
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-[#f3ba2f] font-bold">
-                  +{(user.totalRefEarnings || 0).toLocaleString()}
+                  +{user.totalEarned.toLocaleString()}
                 </p>
-                <p className="text-xs text-[#85827d]">earned</p>
+                <div className="flex items-center justify-end space-x-1">
+                  <p className="text-xs text-[#85827d]">earned</p>
+                  {user.totalEarned > user.earnedFromRef && (
+                    <span className="text-xs bg-[#f3ba2f]/10 text-[#f3ba2f] px-1 rounded">
+                      +
+                      {(user.totalEarned - user.earnedFromRef).toLocaleString()}{" "}
+                      bonus
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
