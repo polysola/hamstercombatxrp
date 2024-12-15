@@ -275,7 +275,7 @@ const App: React.FC = () => {
           levelMinPoints[levelIndex]
         );
       }
-    }, 5000);
+    }, 500);
 
     setSaveTimeout(timeout);
 

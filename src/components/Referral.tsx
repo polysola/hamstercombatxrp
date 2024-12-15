@@ -6,6 +6,7 @@ interface ReferralUser {
   score: number;
   photoUrl?: string;
   earnedFromRef?: number;
+  totalRefEarnings?: number;
 }
 
 interface ReferralProps {
@@ -30,7 +31,7 @@ const Referral: React.FC<ReferralProps> = ({
 
   const ReferralStats = () => {
     const totalEarned = users.reduce(
-      (sum, user) => sum + (user.earnedFromRef || 0),
+      (sum, user) => sum + (user.totalRefEarnings || 0),
       0
     );
     const totalReferrals = users.length;
@@ -57,9 +58,7 @@ const Referral: React.FC<ReferralProps> = ({
         <div className="mb-4">
           <h3 className="text-lg mb-2">Your Referral Code</h3>
           <div className="bg-[#1c1f24] p-3 rounded-lg flex justify-between items-center">
-            <span className="text-[#f3ba2f]">
-              {referralCode || currentUser}
-            </span>
+            <span className="text-[#f3ba2f]">{referralCode}</span>
             <button
               onClick={handleCopyLink}
               className="text-sm text-[#85827d] hover:text-[#f3ba2f]"
@@ -68,7 +67,8 @@ const Referral: React.FC<ReferralProps> = ({
             </button>
           </div>
         </div>
-        <p className="text-center text-gray-400">No referrals yet</p>
+        <ReferralStats />
+        <p className="text-center text-gray-400 mt-4">No referrals yet</p>
       </div>
     );
   }
@@ -78,8 +78,13 @@ const Referral: React.FC<ReferralProps> = ({
       <div className="mb-4">
         <h3 className="text-lg mb-2">Your Referral Code</h3>
         <div className="bg-[#1c1f24] p-3 rounded-lg flex justify-between items-center">
-          <span className="text-[#f3ba2f]">{referralCode || currentUser}</span>
-          <button className="text-sm text-[#85827d]">Copy</button>
+          <span className="text-[#f3ba2f]">{referralCode}</span>
+          <button
+            onClick={handleCopyLink}
+            className="text-sm text-[#85827d] hover:text-[#f3ba2f]"
+          >
+            Copy Link
+          </button>
         </div>
       </div>
 
@@ -105,7 +110,7 @@ const Referral: React.FC<ReferralProps> = ({
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-[#f3ba2f]">
-                +{user.earnedFromRef?.toLocaleString() || 0}
+                +{(user.totalRefEarnings || 0).toLocaleString()}
               </span>
             </div>
           </div>
