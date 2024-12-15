@@ -27,7 +27,8 @@ export const saveUserScore = async (
             lastUpdated: new Date().toISOString(),
             referrer: existingData?.referrer || "",
             referralCode: username,
-            totalRefEarnings: existingData?.totalRefEarnings || 0
+            totalRefEarnings: existingData?.totalRefEarnings || 0,
+            referralEarnings: existingData?.referralEarnings || {}
         };
 
         await setDoc(doc(db, "DataXRP", username), userData);
@@ -147,7 +148,8 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
                 lastUpdated: new Date().toISOString(),
                 referrer: referrerCode, // Set referrer ngay khi tạo mới
                 referralCode: username,
-                totalRefEarnings: 0
+                totalRefEarnings: 0,
+                referralEarnings: {} // Khởi tạo object rỗng cho referralEarnings
             };
             await setDoc(doc(db, "DataXRP", username), userData);
             console.log('Created new user with referrer');
@@ -169,10 +171,11 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
         }
 
         // Cập nhật thông tin người được giới thiệu
-        const updatedUserData = {
+        const updatedUserData: UserScore = {
             ...userData,
             referrer: referrerCode,
-            totalRefEarnings: 0
+            totalRefEarnings: 0,
+            referralEarnings: userData.referralEarnings || {} // Giữ lại referralEarnings nếu có hoặc tạo mới
         };
         console.log('Updating user data with:', updatedUserData);
 
