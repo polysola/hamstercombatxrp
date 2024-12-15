@@ -5,8 +5,8 @@ interface ReferralUser {
   username: string;
   score: number;
   photoUrl?: string;
+  totalRefEarnings: number;
   earnedFromRef?: number;
-  totalRefEarnings?: number;
 }
 
 interface ReferralProps {
@@ -30,11 +30,15 @@ const Referral: React.FC<ReferralProps> = ({
   };
 
   const ReferralStats = () => {
-    const totalEarned = users.reduce(
-      (sum, user) => sum + (user.totalRefEarnings || 0),
-      0
-    );
+    // Calculate total referrals
     const totalReferrals = users.length;
+
+    // Calculate total earnings (sum of all referral earnings)
+    const totalEarned = users.reduce((sum, user) => {
+      // Use totalRefEarnings if available, otherwise use earnedFromRef or 0
+      const earnings = user.totalRefEarnings ?? user.earnedFromRef ?? 0;
+      return sum + earnings;
+    }, 0);
 
     return (
       <div className="grid grid-cols-2 gap-4 mb-4">
@@ -110,7 +114,12 @@ const Referral: React.FC<ReferralProps> = ({
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-[#f3ba2f]">
-                +{(user.totalRefEarnings || 0).toLocaleString()}
+                +
+                {(
+                  user.totalRefEarnings ??
+                  user.earnedFromRef ??
+                  0
+                ).toLocaleString()}
               </span>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./App.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -100,6 +100,30 @@ const App: React.FC = () => {
     referrals: [],
   });
 
+  const fetchTabData = useCallback(async () => {
+    if (!user?.username) return;
+
+    try {
+      if (activeTab === "leaderboard") {
+        const data = await getLeaderboard(10);
+        setLeaderboard(data);
+      } else if (activeTab === "referral") {
+        const refs = await getReferrals(user.username);
+        setReferralData({
+          referralCode: user.username,
+          referrals: refs || [],
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching tab data:", error);
+    }
+  }, [activeTab, user?.username]);
+
+  const handleTabChange = (tab: "main" | "leaderboard" | "referral") => {
+    setActiveTab(tab);
+    fetchTabData();
+  };
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -179,40 +203,6 @@ const App: React.FC = () => {
 
     initializeApp();
   }, []);
-
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      const data = await getLeaderboard(10);
-      setLeaderboard(data);
-    };
-
-    fetchLeaderboard();
-    // Cập nhật leaderboard mỗi 30 giây
-    const interval = setInterval(fetchLeaderboard, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const fetchReferralData = async () => {
-      if (!user?.username) return;
-
-      try {
-        const refs = await getReferrals(user.username);
-        setReferralData({
-          referralCode: user.username,
-          referrals: refs,
-        });
-      } catch (error) {
-        console.error("Error fetching referrals:", error);
-      }
-    };
-
-    fetchReferralData();
-    const interval = setInterval(fetchReferralData, 30000);
-
-    return () => clearInterval(interval);
-  }, [user?.username]);
 
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();
@@ -602,7 +592,7 @@ const App: React.FC = () => {
           {/* Bottom Navigation */}
           <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs p-1">
             <div
-              onClick={() => setActiveTab("main")}
+              onClick={() => handleTabChange("main")}
               className={`text-center w-1/5 p-2 rounded-2xl transition-all duration-200 ${
                 activeTab === "main"
                   ? "bg-[#1c1f24] text-[#f3ba2f]"
@@ -624,7 +614,7 @@ const App: React.FC = () => {
               <p className="mt-1">Mine</p>
             </div>
             <div
-              onClick={() => setActiveTab("leaderboard")}
+              onClick={() => handleTabChange("leaderboard")}
               className={`text-center text-[#85827d] w-1/5 ${
                 activeTab === "leaderboard" ? "bg-[#1c1f24]" : ""
               } m-1 p-2 rounded-2xl cursor-pointer`}
@@ -633,7 +623,7 @@ const App: React.FC = () => {
               <p className="mt-1">Ranking</p>
             </div>
             <div
-              onClick={() => setActiveTab("referral")}
+              onClick={() => handleTabChange("referral")}
               className={`text-center w-1/5 p-2 rounded-2xl transition-all duration-200 ${
                 activeTab === "referral"
                   ? "bg-[#1c1f24] text-[#f3ba2f]"
