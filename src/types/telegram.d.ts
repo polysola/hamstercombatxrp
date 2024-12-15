@@ -9,8 +9,39 @@ interface TelegramUser {
 interface TelegramWebApp {
   initData: string;
   initDataUnsafe: {
+    query_id?: string;
     user?: TelegramUser;
-    start_param?: string;  // Sẽ dùng cho ref code
+    auth_date?: string;
+    hash?: string;
+    start_param?: string;
+  };
+  ready(): void;
+  expand(): void;
+  close(): void;
+  MainButton: {
+    text: string;
+    color: string;
+    textColor: string;
+    isVisible: boolean;
+    isActive: boolean;
+    show(): void;
+    hide(): void;
+    enable(): void;
+    disable(): void;
+  };
+  onEvent(eventType: string, callback: () => void): void;
+  offEvent(eventType: string, callback: () => void): void;
+  sendData(data: any): void;
+  version: string;
+  platform: string;
+  colorScheme: string;
+  themeParams: {
+    bg_color?: string;
+    text_color?: string;
+    hint_color?: string;
+    link_color?: string;
+    button_color?: string;
+    button_text_color?: string;
   };
 }
 

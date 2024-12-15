@@ -127,17 +127,31 @@ const App: React.FC = () => {
         };
         setUser(telegramUser);
 
-        console.log("Telegram initDataUnsafe:", tg.initDataUnsafe);
-        console.log("Current user:", telegramUser);
+        // Lấy start parameter từ initData
+        const initData = tg.initData;
+        console.log("Telegram initData:", initData);
+        console.log("Telegram WebApp:", tg);
 
-        // Lấy start_param từ nhiều nguồn khác nhau
-        const urlParams = new URLSearchParams(window.location.search);
-        const startParam =
-          tg?.initDataUnsafe?.start_param ||
-          urlParams.get("tgWebAppStartParam") ||
-          urlParams.get("startapp");
+        // Parse initData để lấy start_param
+        let startParam = null;
+        try {
+          if (initData) {
+            const params = new URLSearchParams(initData);
+            startParam = params.get("tgWebAppStartParam");
+            console.log("Parsed start param from initData:", startParam);
+          }
+        } catch (error) {
+          console.error("Error parsing initData:", error);
+        }
 
-        console.log("Start param:", startParam);
+        // Fallback: Thử lấy từ URL nếu không có trong initData
+        if (!startParam) {
+          const urlParams = new URLSearchParams(window.location.search);
+          startParam = urlParams.get("tgWebAppStartParam");
+          console.log("Fallback start param from URL:", startParam);
+        }
+
+        console.log("Final start param:", startParam);
 
         if (startParam) {
           const refCode = startParam;
