@@ -18,6 +18,8 @@ import Settings from "./icons/Settings";
 import Mine from "./icons/Mine";
 import Friends from "./icons/Friends";
 import Coins from "./icons/Coins";
+import { useTelegramUser } from "./hooks/useTelegramUser";
+import { saveUserScore, getUserScore } from "./services/userService";
 
 const App: React.FC = () => {
   const levelNames = [
@@ -58,6 +60,33 @@ const App: React.FC = () => {
   const [dailyCipherTimeLeft, setDailyCipherTimeLeft] = useState("");
   const [dailyComboTimeLeft, setDailyComboTimeLeft] = useState("");
 
+  const [user, setUser] = useState<{
+    username: string;
+    photoUrl: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.initDataUnsafe?.user) {
+      const telegramUser = {
+        username: tg.initDataUnsafe.user.username || "Anonymous",
+        photoUrl: tg.initDataUnsafe.user.photo_url || "/src/images/suit.png",
+      };
+      setUser(telegramUser);
+
+      const initializeUserScore = async () => {
+        const savedScore = await getUserScore(telegramUser.username);
+        if (savedScore) {
+          setPoints(savedScore.score);
+        } else {
+          await saveUserScore(telegramUser.username, points);
+        }
+      };
+
+      initializeUserScore();
+    }
+  }, []);
+
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();
     const target = new Date(now);
@@ -90,25 +119,29 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleCardClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
+
     card.style.transform = `perspective(1000px) rotateX(${
       -y / 10
     }deg) rotateY(${x / 10}deg)`;
 
-    // Reset card transformation after a short delay
     setTimeout(() => {
       card.style.transform = "";
     }, 100);
 
-    // Update points and clicks as before
-    setPoints(points + pointsToAdd);
+    const newPoints = points + pointsToAdd;
+    setPoints(newPoints);
+
+    if (user?.username) {
+      await saveUserScore(user.username, newPoints);
+    }
+
     setClicks([...clicks, { id: Date.now(), x: e.pageX, y: e.pageY }]);
 
-    // Create the 💧 element and add to the DOM
     const droplet = document.createElement("span");
     droplet.textContent = "💧";
     droplet.style.position = "absolute";
@@ -119,13 +152,11 @@ const App: React.FC = () => {
     droplet.style.opacity = "1";
     document.body.appendChild(droplet);
 
-    // Make the droplet disappear after a short delay
     setTimeout(() => {
       droplet.style.transform = "translateY(-150px)";
       droplet.style.opacity = "0";
     }, 100);
 
-    // Remove the droplet from the DOM after the animation completes
     setTimeout(() => {
       document.body.removeChild(droplet);
     }, 1100);
@@ -283,7 +314,10 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-4 mt-4 flex justify-center">
+            <div className="px-4 mt-4 flex justify-center flex-col items-center">
+              <p className="text-sm text-white mb-2">
+                {user?.username || "Anonymous"}
+              </p>
               <div className="px-4 py-2 flex items-center space-x-2">
                 <img src={dollarCoin} alt="Dollar Coin" className="w-10 h-10" />
                 <p className="text-4xl text-white">{points.toLocaleString()}</p>
@@ -297,9 +331,9 @@ const App: React.FC = () => {
               >
                 <div className="w-full h-full rounded-full circle-inner">
                   <img
-                    src={mainCharacter}
+                    src={user?.photoUrl || mainCharacter}
                     alt="Main Character"
-                    className="w-full h-full"
+                    className="w-full h-full rounded-full"
                   />
                 </div>
               </div>
