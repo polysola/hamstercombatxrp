@@ -24,9 +24,16 @@ export const useReferral = (username: string | undefined) => {
     const processReferralData = (data: APIReferralUser[]): ReferralUser[] => {
         console.log('Processing referral data:', data);
 
+        if (data.length === 0) return [];
+
+        // Tách người giới thiệu và danh sách được giới thiệu
+        const [currentUser, ...referralUsers] = data;
+        console.log('Current user:', currentUser);
+        console.log('Referral users:', referralUsers);
+
         // Tạo map để theo dõi ai giới thiệu ai
         const referralMap = new Map<string, string[]>();
-        data.forEach(user => {
+        referralUsers.forEach(user => {
             if (user.referrer) {
                 const referrerRefs = referralMap.get(user.referrer) || [];
                 referrerRefs.push(user.username);
@@ -36,50 +43,67 @@ export const useReferral = (username: string | undefined) => {
 
         console.log('Referral map:', Object.fromEntries(referralMap));
 
-        return data.map(user => {
-            const referrals = referralMap.get(user.username) || [];
-            const referralCount = referrals.length;
+        // Xử lý thông tin người giới thiệu
+        const currentUserReferrals = referralMap.get(currentUser.username) || [];
+        const currentUserResult: ReferralUser = {
+            ...currentUser,
+            earnedFromRef: currentUser.totalRefEarnings || 0,
+            referrals: currentUserReferrals,
+            referralCount: currentUserReferrals.length,
+            totalEarned: currentUser.totalRefEarnings || 0
+        };
 
-            // Tính toán earnings từ referrals trực tiếp
+        // Tính bonus từ điểm của người được giới thiệu
+        if (currentUserReferrals.length > 0) {
+            console.log(`Calculating bonus for ${currentUser.username}'s referrals:`, currentUserReferrals);
+            const referralScores = currentUserReferrals.reduce((sum, refUsername) => {
+                const refUser = referralUsers.find(u => u.username === refUsername);
+                const score = refUser?.score || 0;
+                console.log(`Referral ${refUsername} score:`, score);
+                return sum + score;
+            }, 0);
+
+            const bonus = Math.floor(referralScores * 0.05);
+            console.log(`Calculated bonus for ${currentUser.username}:`, bonus);
+            currentUserResult.totalEarned += bonus;
+        }
+
+        console.log('Current user final stats:', {
+            referralCount: currentUserResult.referralCount,
+            earnedFromRef: currentUserResult.earnedFromRef,
+            totalEarned: currentUserResult.totalEarned,
+            referrals: currentUserResult.referrals,
+            totalRefEarnings: currentUserResult.totalRefEarnings,
+            score: currentUserResult.score
+        });
+
+        // Xử lý thông tin người được giới thiệu
+        const referralResults = referralUsers.map(user => {
+            const userReferrals = referralMap.get(user.username) || [];
             const earnedFromRef = user.totalRefEarnings || 0;
-            console.log(`User ${user.username} base earnings:`, earnedFromRef);
-
-            // Tính tổng earnings (bao gồm cả bonus)
             let totalEarned = earnedFromRef;
 
-            // Nếu người này có referrals, tính thêm bonus từ điểm của người được giới thiệu
-            if (referralCount > 0) {
-                console.log(`Calculating bonus for ${user.username}'s referrals:`, referrals);
-                const referralScores = referrals.reduce((sum, refUsername) => {
-                    const refUser = data.find(u => u.username === refUsername);
-                    const score = refUser?.score || 0;
-                    console.log(`Referral ${refUsername} score:`, score);
-                    return sum + score;
+            // Tính bonus nếu người này cũng có referrals
+            if (userReferrals.length > 0) {
+                const referralScores = userReferrals.reduce((sum, refUsername) => {
+                    const refUser = referralUsers.find(u => u.username === refUsername);
+                    return sum + (refUser?.score || 0);
                 }, 0);
-
-                // Bonus là 5% từ điểm của mỗi người được giới thiệu
                 const bonus = Math.floor(referralScores * 0.05);
-                console.log(`Calculated bonus for ${user.username}:`, bonus);
                 totalEarned += bonus;
             }
-
-            console.log(`User ${user.username} final stats:`, {
-                referralCount,
-                earnedFromRef,
-                totalEarned,
-                referrals,
-                totalRefEarnings: user.totalRefEarnings,
-                score: user.score
-            });
 
             return {
                 ...user,
                 earnedFromRef,
-                referrals,
-                referralCount,
+                referrals: userReferrals,
+                referralCount: userReferrals.length,
                 totalEarned
             };
         });
+
+        // Kết hợp kết quả
+        return [currentUserResult, ...referralResults];
     };
 
     const fetchReferrals = useCallback(async () => {

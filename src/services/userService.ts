@@ -82,6 +82,14 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<Leaderboa
 
 export const getReferrals = async (username: string): Promise<APIReferralUser[]> => {
     try {
+        // Lấy thông tin người giới thiệu (current user)
+        const currentUser = await getUserScore(username);
+        if (!currentUser) {
+            console.error('Current user not found:', username);
+            return [];
+        }
+
+        // Lấy danh sách người được giới thiệu
         const q = query(
             collection(db, "DataXRP"),
             where("referrer", "==", username),
@@ -97,7 +105,18 @@ export const getReferrals = async (username: string): Promise<APIReferralUser[]>
             };
         });
 
-        return referrals;
+        // Thêm thông tin người giới thiệu vào đầu danh sách
+        const result = [{
+            ...currentUser,
+            earnedFromRef: currentUser.totalRefEarnings || 0
+        }, ...referrals];
+
+        console.log('Full referral data:', {
+            currentUser: result[0],
+            referrals: result.slice(1)
+        });
+
+        return result;
     } catch (error) {
         console.error("Error getting referrals:", error);
         return [];
