@@ -137,50 +137,61 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
       <div>
         <h3 className="text-lg mb-4">Your Referrals</h3>
         <div className="space-y-3">
-          {referralUsers.map((user, index) => (
-            <div
-              key={user.username}
-              className="bg-gradient-to-r from-[#1c1f24] to-[#272a2f] p-4 rounded-xl transition-all duration-200 hover:transform hover:translate-x-1"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#f3ba2f] to-[#f3ba2f]/50 rounded-full blur-sm opacity-20"></div>
-                    <span className="relative text-[#f3ba2f] font-bold">
-                      #{index + 1}
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-[#f3ba2f]/20 rounded-full blur-sm"></div>
-                    <img
-                      src={user.photoUrl || "/src/images/suit.png"}
-                      alt={user.username}
-                      className="relative w-10 h-10 rounded-full border-2 border-[#f3ba2f]/20"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <p className="text-white font-medium">{user.username}</p>
+          {referralUsers.map((user, index) => {
+            const earnings = users[0]?.referralEarnings?.[user.username];
+
+            return (
+              <div
+                key={user.username}
+                className="bg-gradient-to-r from-[#1c1f24] to-[#272a2f] p-4 rounded-xl transition-all duration-200 hover:transform hover:translate-x-1"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#f3ba2f] to-[#f3ba2f]/50 rounded-full blur-sm opacity-20"></div>
+                      <span className="relative text-[#f3ba2f] font-bold">
+                        #{index + 1}
+                      </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <p className="text-xs text-[#85827d]">
-                        {formatDate(user.lastUpdated)}
-                      </p>
-                      <p className="text-xs text-[#85827d]">
-                        Score: {user.score.toLocaleString()}
-                      </p>
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-[#f3ba2f]/20 rounded-full blur-sm"></div>
+                      <img
+                        src={user.photoUrl || "/src/images/suit.png"}
+                        alt={user.username}
+                        className="relative w-10 h-10 rounded-full border-2 border-[#f3ba2f]/20"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-white font-medium">
+                          {user.username}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-xs text-[#85827d]">
+                          {formatDate(user.lastUpdated)}
+                        </p>
+                        <p className="text-xs text-[#85827d]">
+                          Score: {user.score.toLocaleString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[#f3ba2f] font-bold">
-                    +{user.totalRefEarnings.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-[#85827d]">earned</p>
+                  <div className="text-right">
+                    <p className="text-[#f3ba2f] font-bold">
+                      +{earnings?.amount.toLocaleString() || 0}
+                    </p>
+                    <p className="text-xs text-[#85827d]">
+                      earned from this user
+                    </p>
+                    <p className="text-xs text-[#85827d]">
+                      Last earned: {formatDate(earnings?.lastUpdated)}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );

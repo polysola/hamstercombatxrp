@@ -207,21 +207,44 @@ export const processReferralReward = async (referral: string, amount: number): P
         console.log('Direct referrer data before update:', directReferrer);
 
         if (directReferrer) {
-            const currentRefEarnings = directReferrer.totalRefEarnings || 0;
+            // Lấy earnings hiện tại từ người này (nếu có)
+            const currentEarnings = directReferrer.referralEarnings?.[referral]?.amount || 0;
+            const newEarnings = currentEarnings + reward;
+
+            // Cập nhật chi tiết earnings cho người này
+            const updatedReferralEarnings = {
+                ...(directReferrer.referralEarnings || {}),
+                [referral]: {
+                    username: referral,
+                    amount: newEarnings,
+                    lastUpdated: new Date().toISOString()
+                }
+            };
+
+            // Tính lại tổng earnings từ tất cả referrals
+            const totalRefEarnings = Object.values(updatedReferralEarnings)
+                .reduce((sum, earning) => sum + earning.amount, 0);
+
             const updatedReferrerData: UserScore = {
                 ...directReferrer,
                 score: directReferrer.score + reward,
-                totalRefEarnings: currentRefEarnings + reward,
+                totalRefEarnings,
+                referralEarnings: updatedReferralEarnings,
                 lastUpdated: new Date().toISOString()
             };
-            console.log('Updating direct referrer data with:', updatedReferrerData);
 
+            console.log('Updating direct referrer data with:', updatedReferrerData);
             await setDoc(doc(db, "DataXRP", referralUser.referrer), updatedReferrerData);
 
             // Verify update
             const updatedReferrer = await getUserScore(referralUser.referrer);
             console.log('Direct referrer data after update:', updatedReferrer);
-            console.log('Successfully processed referral reward for direct referrer. Previous totalRefEarnings:', currentRefEarnings, 'New totalRefEarnings:', updatedReferrer?.totalRefEarnings);
+            console.log('Successfully processed referral reward for direct referrer:', {
+                previousEarnings: currentEarnings,
+                newEarnings,
+                totalRefEarnings,
+                fromUser: referral
+            });
         } else {
             console.log('Direct referrer not found in database');
         }
