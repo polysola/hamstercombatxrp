@@ -14,8 +14,10 @@ const Referral: React.FC<ReferralProps> = ({
   referralCode,
 }) => {
   const handleCopyLink = () => {
+    if (!currentUser) return;
+
     const botUsername = "HamterCombatXrp_bot";
-    const miniAppLink = `https://t.me/${botUsername}/miniapp?startapp=${referralCode}`;
+    const miniAppLink = `https://t.me/${botUsername}/miniapp?startapp=${currentUser}`;
     navigator.clipboard.writeText(miniAppLink);
     toast.success("Referral link copied!");
   };
@@ -97,7 +99,7 @@ const Referral: React.FC<ReferralProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm text-[#85827d] mb-1">Share your code</p>
-            <p className="text-lg text-[#f3ba2f] font-mono">{referralCode}</p>
+            <p className="text-lg text-[#f3ba2f] font-mono">{currentUser}</p>
           </div>
           <button
             onClick={handleCopyLink}
@@ -153,7 +155,14 @@ const Referral: React.FC<ReferralProps> = ({
                   />
                 </div>
                 <div>
-                  <p className="text-white font-medium">{user.username}</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-white font-medium">{user.username}</p>
+                    {user.referrer && (
+                      <span className="text-xs bg-[#f3ba2f]/10 text-[#f3ba2f] px-2 py-0.5 rounded-full">
+                        via {user.referrer}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center space-x-2">
                     <p className="text-xs text-[#85827d]">
                       {formatDate(user.lastUpdated)}
