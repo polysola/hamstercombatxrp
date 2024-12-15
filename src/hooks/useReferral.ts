@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getReferrals } from '../services/userService';
 import { ReferralUser, APIReferralUser } from '../types/user';
 
@@ -12,23 +12,31 @@ export const useReferral = (username: string | undefined) => {
         totalEarned: number;
         referralCount: number;
     } => {
-        // Tính toán thu nhập trực tiếp từ người được giới thiệu
+        // Tính toán thu nhập trực tiếp từ người được giới thiệu (5% mỗi người)
         const directEarnings = user.earnedFromRef || 0;
 
-        // Tính số lượng người được giới thiệu (bao gồm cả cấp 2)
-        const referralCount = (user.referrals?.length || 0);
+        // Tính số lượng người được giới thiệu
+        const referralCount = user.referrals?.length || 0;
 
         // Tính tổng thu nhập (bao gồm cả thu nhập từ cấp 2)
-        const totalEarned = user.totalEarned || directEarnings;
+        // Nếu API trả về totalEarned thì dùng, không thì tính từ earnedFromRef
+        let totalEarned = user.totalEarned || 0;
+
+        // Nếu không có totalEarned từ API, tính dựa trên earnedFromRef
+        if (!totalEarned && directEarnings) {
+            // Cộng thêm 2% cho mỗi ref cấp 2
+            const level2Bonus = (referralCount * directEarnings * 0.02);
+            totalEarned = directEarnings + level2Bonus;
+        }
 
         return {
             earnedFromRef: directEarnings,
-            totalEarned,
+            totalEarned: totalEarned || directEarnings, // Fallback to directEarnings if both are 0
             referralCount
         };
     };
 
-    const fetchReferrals = async () => {
+    const fetchReferrals = useCallback(async () => {
         if (!username) return;
 
         setIsLoading(true);
@@ -36,6 +44,10 @@ export const useReferral = (username: string | undefined) => {
 
         try {
             const data = await getReferrals(username);
+            if (!Array.isArray(data)) {
+                throw new Error('Invalid data format from API');
+            }
+
             // Map dữ liệu API sang định dạng ReferralUser
             const mappedData: ReferralUser[] = (data as APIReferralUser[]).map(user => {
                 const earnings = calculateEarnings(user);
@@ -63,11 +75,11 @@ export const useReferral = (username: string | undefined) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [username]);
 
     useEffect(() => {
         fetchReferrals();
-    }, [username]);
+    }, [fetchReferrals]);
 
     // Tính tổng số người được giới thiệu và tổng thu nhập
     const totalStats = referrals.reduce((acc, user) => ({

@@ -90,34 +90,41 @@ const App: React.FC = () => {
     "main" | "leaderboard" | "referral"
   >("main");
 
-  const { referrals, refetch: refetchReferrals } = useReferral(user?.username);
-  const [referralData, setReferralData] = useState<{
-    referrals: ReferralUser[];
-  }>({
-    referrals: [],
-  });
+  const {
+    referrals,
+    isLoading: isReferralLoading,
+    refetch: refetchReferrals,
+  } = useReferral(user?.username);
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
 
-  const fetchTabData = useCallback(async () => {
+  useEffect(() => {
+    if (user?.username) {
+      refetchReferrals();
+      fetchLeaderboard();
+    }
+  }, [user?.username]);
+
+  const fetchLeaderboard = async () => {
     if (!user?.username) return;
 
+    setIsLeaderboardLoading(true);
     try {
-      if (activeTab === "leaderboard") {
-        const data = await getLeaderboard(10);
-        setLeaderboard(data);
-      } else if (activeTab === "referral") {
-        await refetchReferrals();
-        setReferralData({
-          referrals: referrals,
-        });
-      }
+      const data = await getLeaderboard(10);
+      setLeaderboard(data);
     } catch (error) {
-      console.error("Error fetching tab data:", error);
+      console.error("Error fetching leaderboard:", error);
+    } finally {
+      setIsLeaderboardLoading(false);
     }
-  }, [activeTab, user?.username, refetchReferrals, referrals]);
+  };
 
-  const handleTabChange = (tab: "main" | "leaderboard" | "referral") => {
+  const handleTabChange = async (tab: "main" | "leaderboard" | "referral") => {
     setActiveTab(tab);
-    fetchTabData();
+    if (tab === "leaderboard") {
+      await fetchLeaderboard();
+    } else if (tab === "referral") {
+      await refetchReferrals();
+    }
   };
 
   useEffect(() => {
@@ -545,10 +552,16 @@ const App: React.FC = () => {
               <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
                 <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
                   <div className="px-4 pt-6 flex-1 overflow-auto">
-                    <Leaderboard
-                      users={leaderboard}
-                      currentUser={user?.username}
-                    />
+                    {isLeaderboardLoading ? (
+                      <div className="flex justify-center items-center h-40">
+                        <div className="text-white">Loading...</div>
+                      </div>
+                    ) : (
+                      <Leaderboard
+                        users={leaderboard}
+                        currentUser={user?.username}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -574,10 +587,16 @@ const App: React.FC = () => {
               <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
                 <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
                   <div className="px-4 pt-6 flex-1 overflow-auto">
-                    <Referral
-                      users={referralData.referrals}
-                      currentUser={user?.username}
-                    />
+                    {isReferralLoading ? (
+                      <div className="flex justify-center items-center h-40">
+                        <div className="text-white">Loading...</div>
+                      </div>
+                    ) : (
+                      <Referral
+                        users={referrals}
+                        currentUser={user?.username}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
