@@ -128,14 +128,11 @@ const App: React.FC = () => {
         };
         setUser(telegramUser);
 
-        // Xử lý start parameter
-        const startParam = handleStartParameter();
-        console.log("Start parameter:", startParam);
-
-        if (startParam) {
-          console.log("Processing referral code:", startParam);
-          const result = await setReferrer(telegramUser.username, startParam);
-          console.log("Referral result:", result);
+        // Kiểm tra startapp parameter
+        const startapp = tg.initDataUnsafe.start_param;
+        if (startapp) {
+          console.log("Found startapp parameter:", startapp);
+          const result = await setReferrer(telegramUser.username, startapp);
           if (result) {
             toast.success("Referral successful!");
           } else {
