@@ -580,7 +580,6 @@ const App: React.FC = () => {
                     <Referral
                       users={referralData.referrals}
                       currentUser={user?.username}
-                      referralCode={referralData.referralCode}
                     />
                   </div>
                 </div>

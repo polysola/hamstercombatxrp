@@ -5,14 +5,9 @@ import { ReferralUser } from "../types/user";
 interface ReferralProps {
   users?: ReferralUser[];
   currentUser?: string;
-  referralCode?: string;
 }
 
-const Referral: React.FC<ReferralProps> = ({
-  users = [],
-  currentUser,
-  referralCode,
-}) => {
+const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
   const handleCopyLink = () => {
     if (!currentUser) return;
 
