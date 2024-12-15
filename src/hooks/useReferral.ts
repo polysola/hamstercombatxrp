@@ -53,21 +53,6 @@ export const useReferral = (username: string | undefined) => {
             totalEarned: currentUser.totalRefEarnings || 0
         };
 
-        // Tính bonus từ điểm của người được giới thiệu
-        if (currentUserReferrals.length > 0) {
-            console.log(`Calculating bonus for ${currentUser.username}'s referrals:`, currentUserReferrals);
-            const referralScores = currentUserReferrals.reduce((sum, refUsername) => {
-                const refUser = referralUsers.find(u => u.username === refUsername);
-                const score = refUser?.score || 0;
-                console.log(`Referral ${refUsername} score:`, score);
-                return sum + score;
-            }, 0);
-
-            const bonus = Math.floor(referralScores * 0.05);
-            console.log(`Calculated bonus for ${currentUser.username}:`, bonus);
-            currentUserResult.totalEarned += bonus;
-        }
-
         console.log('Current user final stats:', {
             referralCount: currentUserResult.referralCount,
             earnedFromRef: currentUserResult.earnedFromRef,
@@ -80,25 +65,12 @@ export const useReferral = (username: string | undefined) => {
         // Xử lý thông tin người được giới thiệu
         const referralResults = referralUsers.map(user => {
             const userReferrals = referralMap.get(user.username) || [];
-            const earnedFromRef = user.totalRefEarnings || 0;
-            let totalEarned = earnedFromRef;
-
-            // Tính bonus nếu người này cũng có referrals
-            if (userReferrals.length > 0) {
-                const referralScores = userReferrals.reduce((sum, refUsername) => {
-                    const refUser = referralUsers.find(u => u.username === refUsername);
-                    return sum + (refUser?.score || 0);
-                }, 0);
-                const bonus = Math.floor(referralScores * 0.05);
-                totalEarned += bonus;
-            }
-
             return {
                 ...user,
-                earnedFromRef,
+                earnedFromRef: user.totalRefEarnings || 0,
                 referrals: userReferrals,
                 referralCount: userReferrals.length,
-                totalEarned
+                totalEarned: user.totalRefEarnings || 0
             };
         });
 

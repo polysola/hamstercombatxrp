@@ -39,15 +39,8 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
   };
 
   const ReferralStats = () => {
-    const totalReferrals = users.reduce(
-      (sum, user) => sum + (user.referralCount || 0),
-      0
-    );
-    const directReferrals = users.length;
-    const totalEarned = users.reduce(
-      (sum, user) => sum + (user.totalEarned || 0),
-      0
-    );
+    const currentUser = users[0];
+    if (!currentUser) return null;
 
     return (
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -68,10 +61,10 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
             </svg>
           </div>
           <p className="text-sm text-[#85827d] mb-1">Total Referrals</p>
-          <p className="text-2xl font-bold text-[#f3ba2f]">{totalReferrals}</p>
-          <p className="text-xs text-[#85827d] mt-1">
-            Direct: {directReferrals}
+          <p className="text-2xl font-bold text-[#f3ba2f]">
+            {currentUser.referrals.length}
           </p>
+          <p className="text-xs text-[#85827d] mt-1">Direct referrals</p>
         </div>
         <div className="bg-gradient-to-br from-[#1c1f24] to-[#272a2f] p-4 rounded-xl text-center shadow-lg">
           <div className="bg-[#f3ba2f]/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -91,9 +84,9 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
           </div>
           <p className="text-sm text-[#85827d] mb-1">Total Earned</p>
           <p className="text-2xl font-bold text-[#f3ba2f]">
-            +{totalEarned.toLocaleString()}
+            +{currentUser.totalRefEarnings.toLocaleString()}
           </p>
-          <p className="text-xs text-[#85827d] mt-1">From all referrals</p>
+          <p className="text-xs text-[#85827d] mt-1">From referral rewards</p>
         </div>
       </div>
     );
@@ -137,92 +130,61 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
     </div>
   );
 
-  const ReferralList = () => (
-    <div>
-      <h3 className="text-lg mb-4">Your Referrals</h3>
-      <div className="space-y-3">
-        {users.map((user, index) => (
-          <div
-            key={user.username}
-            className={`bg-gradient-to-r ${
-              user.username === currentUser
-                ? "from-[#f3ba2f]/10 to-[#272a2f] border border-[#f3ba2f]/20"
-                : "from-[#1c1f24] to-[#272a2f]"
-            } p-4 rounded-xl transition-all duration-200 hover:transform hover:translate-x-1`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#f3ba2f] to-[#f3ba2f]/50 rounded-full blur-sm opacity-20"></div>
-                  <span className="relative text-[#f3ba2f] font-bold">
-                    #{index + 1}
-                  </span>
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-0 bg-[#f3ba2f]/20 rounded-full blur-sm"></div>
-                  <img
-                    src={user.photoUrl || "/src/images/suit.png"}
-                    alt={user.username}
-                    className="relative w-10 h-10 rounded-full border-2 border-[#f3ba2f]/20"
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <p className="text-white font-medium">{user.username}</p>
-                    {user.referrer && (
-                      <span className="text-xs bg-[#f3ba2f]/10 text-[#f3ba2f] px-2 py-0.5 rounded-full">
-                        via {user.referrer}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <p className="text-xs text-[#85827d]">
-                      {formatDate(user.lastUpdated)}
-                    </p>
-                    {user.referralCount > 0 && (
-                      <span className="text-xs bg-[#f3ba2f]/10 text-[#f3ba2f] px-2 py-0.5 rounded-full">
-                        {user.referralCount} refs
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-[#f3ba2f] font-bold">
-                  +{user.totalEarned.toLocaleString()}
-                </p>
-                <div className="flex items-center justify-end space-x-1">
-                  <p className="text-xs text-[#85827d]">earned</p>
-                  {user.totalEarned > user.earnedFromRef && (
-                    <span className="text-xs bg-[#f3ba2f]/10 text-[#f3ba2f] px-1 rounded">
-                      +
-                      {(user.totalEarned - user.earnedFromRef).toLocaleString()}{" "}
-                      bonus
+  const ReferralList = () => {
+    const referralUsers = users.slice(1);
+
+    return (
+      <div>
+        <h3 className="text-lg mb-4">Your Referrals</h3>
+        <div className="space-y-3">
+          {referralUsers.map((user, index) => (
+            <div
+              key={user.username}
+              className="bg-gradient-to-r from-[#1c1f24] to-[#272a2f] p-4 rounded-xl transition-all duration-200 hover:transform hover:translate-x-1"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#f3ba2f] to-[#f3ba2f]/50 rounded-full blur-sm opacity-20"></div>
+                    <span className="relative text-[#f3ba2f] font-bold">
+                      #{index + 1}
                     </span>
-                  )}
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-[#f3ba2f]/20 rounded-full blur-sm"></div>
+                    <img
+                      src={user.photoUrl || "/src/images/suit.png"}
+                      alt={user.username}
+                      className="relative w-10 h-10 rounded-full border-2 border-[#f3ba2f]/20"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-white font-medium">{user.username}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-xs text-[#85827d]">
+                        {formatDate(user.lastUpdated)}
+                      </p>
+                      <p className="text-xs text-[#85827d]">
+                        Score: {user.score.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-[#f3ba2f] font-bold">
+                    +{user.totalRefEarnings.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-[#85827d]">earned</p>
                 </div>
               </div>
             </div>
-            {user.referrals.length > 0 && (
-              <div className="mt-2 pl-12">
-                <p className="text-xs text-[#85827d] mb-1">Sub-referrals:</p>
-                <div className="flex flex-wrap gap-2">
-                  {user.referrals.map((subUser, idx) => (
-                    <span
-                      key={idx}
-                      className="text-xs bg-[#1c1f24] text-[#f3ba2f] px-2 py-1 rounded-full"
-                    >
-                      {subUser}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="bg-[#272a2f] rounded-lg p-4">
