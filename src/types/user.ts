@@ -3,11 +3,11 @@ export interface APIReferralUser {
     username: string;
     score: number;
     photoUrl?: string;
-    earnedFromRef: number;
-    lastUpdated?: string;
-    referrals?: string[]; // Danh sách username của người được giới thiệu
-    totalEarned?: number; // Tổng số tiền kiếm được từ ref
-    referrer?: string; // Username của người giới thiệu
+    levelMin: number;
+    lastUpdated: string;
+    referralCode: string;
+    referrer?: string;
+    totalRefEarnings: number;
 }
 
 // Interface cho dữ liệu đã được xử lý
@@ -15,11 +15,13 @@ export interface ReferralUser {
     username: string;
     score: number;
     photoUrl?: string;
-    earnedFromRef: number;
+    levelMin: number;
+    lastUpdated: string;
+    referralCode: string;
+    referrer?: string;
     totalRefEarnings: number;
-    lastUpdated?: string;
-    referrals: string[]; // Danh sách username của người được giới thiệu
-    referralCount: number; // Số lượng người đã giới thiệu
-    totalEarned: number; // Tổng số tiền kiếm được từ ref
-    referrer?: string; // Username của người giới thiệu
+    earnedFromRef: number;
+    referrals: string[];
+    referralCount: number;
+    totalEarned: number;
 } 
