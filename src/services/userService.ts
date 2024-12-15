@@ -121,14 +121,28 @@ export const setReferrer = async (username: string, referrerCode: string) => {
             return false;
         }
 
-        const userData = await getUserScore(username);
+        let userData = await getUserScore(username);
         console.log('Current user data:', userData);
 
+        // Nếu user chưa tồn tại, tạo mới
         if (!userData) {
-            console.log('User does not exist in database');
-            return false;
+            console.log('Creating new user');
+            userData = {
+                username,
+                score: 1000,
+                levelMin: 0,
+                photoUrl: "/src/images/suit.png",
+                lastUpdated: new Date().toISOString(),
+                referrer: referrerCode, // Set referrer ngay khi tạo mới
+                referralCode: username,
+                totalRefEarnings: 0
+            };
+            await setDoc(doc(db, "DataXRP", username), userData);
+            console.log('Created new user with referrer');
+            return true;
         }
 
+        // Nếu user đã tồn tại và đã có người giới thiệu
         if (userData.referrer) {
             console.log('User already has referrer:', userData.referrer);
             return false;

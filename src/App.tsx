@@ -130,8 +130,15 @@ const App: React.FC = () => {
         console.log("Telegram initDataUnsafe:", tg.initDataUnsafe);
         console.log("Current user:", telegramUser);
 
-        if (tg?.initDataUnsafe?.start_param) {
-          const refCode = tg.initDataUnsafe.start_param;
+        // Lấy start_param từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const startParam =
+          urlParams.get("start_param") || tg?.initDataUnsafe?.start_param;
+
+        console.log("Start param from URL:", startParam);
+
+        if (startParam) {
+          const refCode = startParam;
           console.log("Detected referral code:", refCode);
           const result = await setReferrer(telegramUser.username, refCode);
           console.log("Referral result:", result);
