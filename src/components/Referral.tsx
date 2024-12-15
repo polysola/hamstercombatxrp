@@ -29,10 +29,14 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
 
   const ReferralStats = () => {
     const totalReferrals = users.reduce(
-      (sum, user) => sum + user.referralCount,
+      (sum, user) => sum + (user.referralCount || 0),
       0
     );
-    const totalEarned = users.reduce((sum, user) => sum + user.totalEarned, 0);
+    const directReferrals = users.length;
+    const totalEarned = users.reduce(
+      (sum, user) => sum + (user.totalEarned || 0),
+      0
+    );
 
     return (
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -54,7 +58,9 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
           </div>
           <p className="text-sm text-[#85827d] mb-1">Total Referrals</p>
           <p className="text-2xl font-bold text-[#f3ba2f]">{totalReferrals}</p>
-          <p className="text-xs text-[#85827d] mt-1">Direct: {users.length}</p>
+          <p className="text-xs text-[#85827d] mt-1">
+            Direct: {directReferrals}
+          </p>
         </div>
         <div className="bg-gradient-to-br from-[#1c1f24] to-[#272a2f] p-4 rounded-xl text-center shadow-lg">
           <div className="bg-[#f3ba2f]/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -76,7 +82,7 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
           <p className="text-2xl font-bold text-[#f3ba2f]">
             +{totalEarned.toLocaleString()}
           </p>
-          <p className="text-xs text-[#85827d] mt-1">From all levels</p>
+          <p className="text-xs text-[#85827d] mt-1">From all referrals</p>
         </div>
       </div>
     );
@@ -186,6 +192,21 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
                 </div>
               </div>
             </div>
+            {user.referrals.length > 0 && (
+              <div className="mt-2 pl-12">
+                <p className="text-xs text-[#85827d] mb-1">Sub-referrals:</p>
+                <div className="flex flex-wrap gap-2">
+                  {user.referrals.map((subUser, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs bg-[#1c1f24] text-[#f3ba2f] px-2 py-1 rounded-full"
+                    >
+                      {subUser}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

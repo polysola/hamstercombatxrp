@@ -92,10 +92,8 @@ const App: React.FC = () => {
 
   const { referrals, refetch: refetchReferrals } = useReferral(user?.username);
   const [referralData, setReferralData] = useState<{
-    referralCode: string;
     referrals: ReferralUser[];
   }>({
-    referralCode: "",
     referrals: [],
   });
 
@@ -109,7 +107,6 @@ const App: React.FC = () => {
       } else if (activeTab === "referral") {
         await refetchReferrals();
         setReferralData({
-          referralCode: user.username,
           referrals: referrals,
         });
       }
