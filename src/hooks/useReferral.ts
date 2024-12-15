@@ -12,45 +12,61 @@ export const useReferral = (username: string | undefined) => {
         totalEarned: number;
         referralCount: number;
     } => {
+        console.log('Calculating earnings for user:', user.username);
+
         // Tính toán thu nhập trực tiếp từ người được giới thiệu (5% mỗi người)
         const directEarnings = user.earnedFromRef || 0;
+        console.log('Direct earnings:', directEarnings);
 
         // Tính số lượng người được giới thiệu
         const referralCount = user.referrals?.length || 0;
+        console.log('Referral count:', referralCount);
 
         // Tính tổng thu nhập (bao gồm cả thu nhập từ cấp 2)
-        // Nếu API trả về totalEarned thì dùng, không thì tính từ earnedFromRef
-        let totalEarned = user.totalEarned || 0;
+        let totalEarned = directEarnings;
 
-        // Nếu không có totalEarned từ API, tính dựa trên earnedFromRef
-        if (!totalEarned && directEarnings) {
-            // Cộng thêm 2% cho mỗi ref cấp 2
-            const level2Bonus = (referralCount * directEarnings * 0.02);
-            totalEarned = directEarnings + level2Bonus;
+        // Nếu có referrals, tính thêm bonus
+        if (referralCount > 0) {
+            // Mỗi người giới thiệu được 5% từ người được giới thiệu
+            const referralBonus = directEarnings * 0.05 * referralCount;
+            totalEarned += referralBonus;
+            console.log('Referral bonus:', referralBonus);
         }
+
+        console.log('Total earned:', totalEarned);
 
         return {
             earnedFromRef: directEarnings,
-            totalEarned: totalEarned || directEarnings, // Fallback to directEarnings if both are 0
+            totalEarned,
             referralCount
         };
     };
 
     const fetchReferrals = useCallback(async () => {
-        if (!username) return;
+        if (!username) {
+            console.log('No username provided');
+            return;
+        }
 
         setIsLoading(true);
         setError(null);
 
         try {
+            console.log('Fetching referrals for:', username);
             const data = await getReferrals(username);
+
             if (!Array.isArray(data)) {
+                console.error('Invalid data format:', data);
                 throw new Error('Invalid data format from API');
             }
 
+            console.log('Raw referral data:', data);
+
             // Map dữ liệu API sang định dạng ReferralUser
             const mappedData: ReferralUser[] = (data as APIReferralUser[]).map(user => {
+                console.log('Processing user:', user.username);
                 const earnings = calculateEarnings(user);
+
                 return {
                     username: user.username,
                     score: user.score,
@@ -65,13 +81,16 @@ export const useReferral = (username: string | undefined) => {
                 };
             });
 
+            console.log('Processed referral data:', mappedData);
+
             // Sắp xếp theo tổng thu nhập từ cao đến thấp
             mappedData.sort((a, b) => b.totalEarned - a.totalEarned);
 
             setReferrals(mappedData);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to fetch referrals');
-            console.error('Error fetching referrals:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch referrals';
+            console.error('Error in fetchReferrals:', errorMessage, err);
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }

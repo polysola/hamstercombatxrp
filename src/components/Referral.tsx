@@ -8,13 +8,24 @@ interface ReferralProps {
 }
 
 const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
-  const handleCopyLink = () => {
-    if (!currentUser) return;
+  const handleCopyLink = async () => {
+    if (!currentUser) {
+      console.error("No current user found");
+      return;
+    }
 
-    const botUsername = "HamterCombatXrp_bot";
-    const miniAppLink = `https://t.me/${botUsername}/miniapp?startapp=${currentUser}`;
-    navigator.clipboard.writeText(miniAppLink);
-    toast.success("Referral link copied!");
+    try {
+      const botUsername = "HamterCombatXrp_bot";
+      const miniAppLink = `https://t.me/${botUsername}/miniapp?startapp=${currentUser}`;
+
+      console.log("Copying referral link:", miniAppLink);
+      await navigator.clipboard.writeText(miniAppLink);
+
+      toast.success("Referral link copied to clipboard!");
+    } catch (error) {
+      console.error("Error copying link:", error);
+      toast.error("Failed to copy link. Please try again.");
+    }
   };
 
   const formatDate = (dateString?: string) => {
