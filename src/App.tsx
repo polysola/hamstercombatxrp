@@ -136,8 +136,21 @@ const App: React.FC = () => {
         let startParam = null;
         try {
           if (initData) {
-            const params = new URLSearchParams(initData);
-            startParam = params.get("tgWebAppStartParam");
+            // Decode URL-encoded data
+            const decodedData = decodeURIComponent(initData);
+            console.log("Decoded initData:", decodedData);
+
+            // Parse thành object
+            const params = new URLSearchParams(decodedData);
+
+            // Lấy thông tin user từ params
+            const userStr = params.get("user");
+            if (userStr) {
+              const userData = JSON.parse(userStr);
+              console.log("Parsed user data:", userData);
+            }
+
+            startParam = params.get("start_param");
             console.log("Parsed start param from initData:", startParam);
           }
         } catch (error) {
