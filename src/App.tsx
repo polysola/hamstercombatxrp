@@ -130,12 +130,12 @@ const App: React.FC = () => {
         console.log("Telegram initDataUnsafe:", tg.initDataUnsafe);
         console.log("Current user:", telegramUser);
 
-        // Lấy start_param từ URL
-        const urlParams = new URLSearchParams(window.location.search);
+        // Lấy start_param từ Telegram WebApp
         const startParam =
-          urlParams.get("start_param") || tg?.initDataUnsafe?.start_param;
+          tg?.initDataUnsafe?.start_param ||
+          new URLSearchParams(window.location.search).get("tgWebAppStartParam");
 
-        console.log("Start param from URL:", startParam);
+        console.log("Start param:", startParam);
 
         if (startParam) {
           const refCode = startParam;
@@ -148,7 +148,7 @@ const App: React.FC = () => {
             toast.info("Already referred or invalid referral code");
           }
         } else {
-          console.log("No referral code detected in start_param");
+          console.log("No referral code detected");
         }
 
         try {
