@@ -68,33 +68,45 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
-    if (tg?.initDataUnsafe?.user) {
-      const telegramUser = {
-        username: tg.initDataUnsafe.user.username || "Anonymous",
-        photoUrl: tg.initDataUnsafe.user.photo_url || "/src/images/suit.png",
-      };
-      setUser(telegramUser);
-
-      const initializeUserScore = async () => {
-        const savedScore = await getUserScore(telegramUser.username);
-        if (savedScore) {
-          setPoints(savedScore.score);
-          const newLevelIndex = levelMinPoints.findIndex(
-            (min, index) =>
-              savedScore.score >= min &&
-              (index === levelMinPoints.length - 1 ||
-                savedScore.score < levelMinPoints[index + 1])
-          );
-          setLevelIndex(newLevelIndex !== -1 ? newLevelIndex : 0);
-        } else {
-          setPoints(1000);
-          setLevelIndex(0);
-          await saveUserScore(telegramUser.username, 1000, levelMinPoints[0]);
-        }
-      };
-
-      initializeUserScore();
+    if (!tg || !tg.initDataUnsafe?.user) {
+      toast.error("Please login via Telegram WebApp!", {
+        position: "top-center",
+        autoClose: false,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      return;
     }
+
+    const telegramUser = {
+      username: tg.initDataUnsafe.user.username || "Anonymous",
+      photoUrl: tg.initDataUnsafe.user.photo_url || "/src/images/suit.png",
+    };
+    setUser(telegramUser);
+
+    const initializeUserScore = async () => {
+      const savedScore = await getUserScore(telegramUser.username);
+      if (savedScore) {
+        setPoints(savedScore.score);
+        const newLevelIndex = levelMinPoints.findIndex(
+          (min, index) =>
+            savedScore.score >= min &&
+            (index === levelMinPoints.length - 1 ||
+              savedScore.score < levelMinPoints[index + 1])
+        );
+        setLevelIndex(newLevelIndex !== -1 ? newLevelIndex : 0);
+      } else {
+        setPoints(1000);
+        setLevelIndex(0);
+        await saveUserScore(telegramUser.username, 1000, levelMinPoints[0]);
+      }
+    };
+
+    initializeUserScore();
   }, []);
 
   const calculateTimeLeft = (targetHour: number) => {
@@ -349,7 +361,7 @@ const App: React.FC = () => {
               >
                 <div className="w-full h-full rounded-full circle-inner">
                   <img
-                    src={user?.photoUrl || mainCharacter}
+                    src={mainCharacter}
                     alt="Main Character"
                     className="w-full h-full rounded-full"
                   />
