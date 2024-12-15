@@ -129,7 +129,14 @@ const App: React.FC = () => {
 
         if (tg?.initDataUnsafe?.start_param) {
           const refCode = tg.initDataUnsafe.start_param;
-          await setReferrer(telegramUser.username, refCode);
+          console.log("Detected referral code:", refCode);
+          const result = await setReferrer(telegramUser.username, refCode);
+          console.log("Referral result:", result);
+          if (result) {
+            toast.success("Referral successful!");
+          } else {
+            toast.info("Already referred or invalid referral code");
+          }
         }
 
         try {

@@ -113,11 +113,20 @@ export const getReferrals = async (username: string) => {
 
 export const setReferrer = async (username: string, referrerCode: string) => {
     try {
+        console.log('Setting referrer for:', username, 'referrer:', referrerCode);
         const userData = await getUserScore(username);
-        if (!userData || userData.referrer) return false;  // Đã có người giới thiệu
+        console.log('Current user data:', userData);
+        if (!userData || userData.referrer) {
+            console.log('User already has referrer or does not exist');
+            return false;  // Đã có người giới thiệu
+        }
 
         const referrer = await getUserScore(referrerCode);
-        if (!referrer) return false;  // Người giới thiệu không tồn tại
+        console.log('Referrer data:', referrer);
+        if (!referrer) {
+            console.log('Referrer does not exist');
+            return false;  // Người giới thiệu không tồn tại
+        }
 
         // Cập nhật thông tin người được giới thiệu
         await setDoc(doc(db, "DataXRP", username), {
@@ -125,7 +134,7 @@ export const setReferrer = async (username: string, referrerCode: string) => {
             referrer: referrerCode,
             totalRefEarnings: 0
         });
-
+        console.log('Successfully set referrer');
         return true;
     } catch (error) {
         console.error("Error setting referrer:", error);
