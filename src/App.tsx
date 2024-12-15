@@ -16,7 +16,7 @@ import {
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
 import Mine from "./icons/Mine";
-import Friends from "./icons/Mine";
+// import Friends from "./icons/Mine";
 import Coins from "./icons/Coins";
 import {
   saveUserScore,
