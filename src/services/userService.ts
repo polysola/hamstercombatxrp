@@ -214,50 +214,47 @@ export const processReferralReward = async (referral: string, amount: number) =>
 
 export const handleStartParameter = () => {
     try {
-        // Lấy URL hiện tại và hash
-        const currentUrl = window.location.href;
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        console.log('Current URL:', currentUrl);
-        console.log('Hash params:', Object.fromEntries(hashParams.entries()));
+        const tg = window.Telegram?.WebApp;
+        console.log('Telegram WebApp:', tg);
 
-        // Lấy tgWebAppData từ hash
-        const webAppData = hashParams.get('tgWebAppData');
-        if (webAppData) {
-            // Decode URL-encoded data
-            const decodedData = decodeURIComponent(webAppData);
-            console.log('Decoded WebApp data:', decodedData);
+        // Kiểm tra start_param từ initDataUnsafe
+        if (tg?.initDataUnsafe?.start_param) {
+            console.log('Found start_param in initDataUnsafe:', tg.initDataUnsafe.start_param);
+            return tg.initDataUnsafe.start_param;
+        }
 
-            // Parse các tham số từ tgWebAppData
-            const webAppParams = new URLSearchParams(decodedData);
+        // Kiểm tra URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const startCommand = urlParams.get('command');
+        const startParam = urlParams.get('parameter');
 
-            // Kiểm tra start_param trong tgWebAppData
-            const startParam = webAppParams.get('start_param');
-            if (startParam) {
-                console.log('Found start_param in WebApp data:', startParam);
-                return startParam;
-            }
+        if (startCommand === 'start' && startParam) {
+            console.log('Found start parameter in URL:', startParam);
+            return startParam;
         }
 
         // Kiểm tra localStorage
         const savedCode = localStorage.getItem('referral_code');
         if (savedCode) {
             console.log('Found saved referral code:', savedCode);
-            // Xóa code sau khi đã sử dụng
             localStorage.removeItem('referral_code');
             return savedCode;
-        }
-
-        // Kiểm tra URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlStartParam = urlParams.get('tgWebAppStartParam') || urlParams.get('start_param');
-        if (urlStartParam) {
-            console.log('Found start param in URL:', urlStartParam);
-            return urlStartParam;
         }
 
         return null;
     } catch (error) {
         console.error('Error handling start parameter:', error);
         return null;
+    }
+};
+
+export const saveReferralCode = (code: string) => {
+    try {
+        localStorage.setItem('referral_code', code);
+        console.log('Saved referral code to localStorage:', code);
+        return true;
+    } catch (error) {
+        console.error('Error saving referral code:', error);
+        return false;
     }
 };
