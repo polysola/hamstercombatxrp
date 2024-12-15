@@ -1,17 +1,6 @@
 import { db } from '../config/firebase';
 import { doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
-
-interface UserScore {
-    username: string;
-    score: number;
-    levelMin: number;
-    lastUpdated: string;
-    photoUrl?: string;
-    referrer?: string;  // người giới thiệu
-    referralCode: string;  // mã giới thiệu
-    totalRefEarnings: number;  // tổng thu nhập từ ref
-}
-
+import { UserScore, APIReferralUser } from '../types/user';
 
 export const saveUserScore = async (
     username: string,
@@ -70,7 +59,7 @@ export const getLeaderboard = async (limitCount: number = 10) => {
 
         const querySnapshot = await getDocs(q);
         const leaderboard = querySnapshot.docs.map(doc => {
-            const data = doc.data();
+            const data = doc.data() as UserScore;
             return {
                 username: data.username,
                 score: data.score,
@@ -85,7 +74,7 @@ export const getLeaderboard = async (limitCount: number = 10) => {
     }
 };
 
-export const getReferrals = async (username: string) => {
+export const getReferrals = async (username: string): Promise<APIReferralUser[]> => {
     try {
         const q = query(
             collection(db, "DataXRP"),
@@ -95,16 +84,10 @@ export const getReferrals = async (username: string) => {
 
         const querySnapshot = await getDocs(q);
         const referrals = querySnapshot.docs.map(doc => {
-            const data = doc.data();
+            const data = doc.data() as UserScore;
             return {
-                username: data.username,
-                score: data.score,
-                photoUrl: data.photoUrl,
-                levelMin: data.levelMin,
-                lastUpdated: data.lastUpdated,
-                referralCode: data.referralCode,
-                referrer: data.referrer,
-                totalRefEarnings: data.totalRefEarnings
+                ...data,
+                earnedFromRef: data.totalRefEarnings || 0
             };
         });
 
