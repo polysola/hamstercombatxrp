@@ -80,13 +80,17 @@ const App: React.FC = () => {
         if (savedScore) {
           setPoints(savedScore.score);
         } else {
-          await saveUserScore(telegramUser.username, points);
+          await saveUserScore(
+            telegramUser.username,
+            points,
+            levelMinPoints[levelIndex]
+          );
         }
       };
 
       initializeUserScore();
     }
-  }, []);
+  }, [points, levelIndex, levelMinPoints]);
 
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();
