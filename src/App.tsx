@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./App.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -45,18 +45,21 @@ const App: React.FC = () => {
     "Lord", // From 1,000,000,000 coins to ∞
   ];
 
-  const levelMinPoints = [
-    0, // Bronze
-    5000, // Silver
-    25000, // Gold
-    100000, // Platinum
-    1000000, // Diamond
-    2000000, // Epic
-    10000000, // Legendary
-    50000000, // Master
-    100000000, // GrandMaster
-    1000000000, // Lord
-  ];
+  const levelMinPoints = useMemo(
+    () => [
+      0, // Bronze
+      5000, // Silver
+      25000, // Gold
+      100000, // Platinum
+      1000000, // Diamond
+      2000000, // Epic
+      10000000, // Legendary
+      50000000, // Master
+      100000000, // GrandMaster
+      1000000000, // Lord
+    ],
+    []
+  );
 
   const [levelIndex, setLevelIndex] = useState(6);
   const [points, setPoints] = useState(1000);
