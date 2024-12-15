@@ -18,7 +18,6 @@ import Settings from "./icons/Settings";
 import Mine from "./icons/Mine";
 import Friends from "./icons/Friends";
 import Coins from "./icons/Coins";
-import { useTelegramUser } from "./hooks/useTelegramUser";
 import { saveUserScore, getUserScore } from "./services/userService";
 
 const App: React.FC = () => {
