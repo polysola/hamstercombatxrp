@@ -211,3 +211,48 @@ export const processReferralReward = async (referral: string, amount: number) =>
         console.error("Error processing referral reward:", error);
     }
 };
+
+export const handleStartParameter = () => {
+    try {
+        // Lấy URL hiện tại
+        const currentUrl = window.location.href;
+        console.log('Current URL:', currentUrl);
+
+        // Kiểm tra xem có phải từ bot command không
+        if (currentUrl.includes('?command=start')) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const command = urlParams.get('command');
+            const param = urlParams.get('parameter');
+
+            if (command === 'start' && param) {
+                console.log('Found start parameter:', param);
+                // Lưu vào localStorage
+                localStorage.setItem('referral_code', param);
+                return param;
+            }
+        }
+
+        // Kiểm tra xem có tham số tgWebAppStartParam không
+        const urlParams = new URLSearchParams(window.location.search);
+        const startParam = urlParams.get('tgWebAppStartParam');
+        if (startParam) {
+            console.log('Found tgWebAppStartParam:', startParam);
+            localStorage.setItem('referral_code', startParam);
+            return startParam;
+        }
+
+        // Kiểm tra localStorage
+        const savedCode = localStorage.getItem('referral_code');
+        if (savedCode) {
+            console.log('Found saved referral code:', savedCode);
+            // Xóa code sau khi đã sử dụng
+            localStorage.removeItem('referral_code');
+            return savedCode;
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error handling start parameter:', error);
+        return null;
+    }
+};

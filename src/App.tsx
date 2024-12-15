@@ -24,6 +24,7 @@ import {
   getLeaderboard,
   getReferrals,
   setReferrer,
+  handleStartParameter,
 } from "./services/userService";
 import Leaderboard from "./components/Leaderboard";
 import Referral from "./components/Referral";
@@ -127,67 +128,19 @@ const App: React.FC = () => {
         };
         setUser(telegramUser);
 
-        // Lấy start parameter từ initData
-        const initData = tg.initData;
-        console.log("Telegram initData:", initData);
-        console.log("Telegram WebApp:", tg);
-
-        // Parse initData để lấy start_param
-        let startParam = null;
-        try {
-          if (initData) {
-            // Decode URL-encoded data
-            const decodedData = decodeURIComponent(initData);
-            console.log("Decoded initData:", decodedData);
-
-            // Parse thành object
-            const params = new URLSearchParams(decodedData);
-
-            // Lấy thông tin user từ params
-            const userStr = params.get("user");
-            if (userStr) {
-              const userData = JSON.parse(userStr);
-              console.log("Parsed user data:", userData);
-            }
-
-            // Thử lấy start_param từ nhiều nguồn
-            startParam =
-              params.get("start_param") ||
-              params.get("start") ||
-              tg.initDataUnsafe?.start_param;
-
-            // Nếu không có, thử lấy từ URL
-            if (!startParam) {
-              const urlParams = new URLSearchParams(window.location.search);
-              startParam =
-                urlParams.get("start") || urlParams.get("tgWebAppStartParam");
-            }
-
-            console.log("Start param sources:", {
-              fromParams: params.get("start_param"),
-              fromStart: params.get("start"),
-              fromInitDataUnsafe: tg.initDataUnsafe?.start_param,
-              fromURL: new URLSearchParams(window.location.search).get("start"),
-            });
-          }
-        } catch (error) {
-          console.error("Error parsing initData:", error);
-        }
-
-        console.log("Final start param:", startParam);
+        // Xử lý start parameter
+        const startParam = handleStartParameter();
+        console.log("Start parameter:", startParam);
 
         if (startParam) {
-          const refCode = startParam;
-          console.log("Detected referral code:", refCode);
-          const result = await setReferrer(telegramUser.username, refCode);
+          console.log("Processing referral code:", startParam);
+          const result = await setReferrer(telegramUser.username, startParam);
           console.log("Referral result:", result);
           if (result) {
             toast.success("Referral successful!");
           } else {
             toast.info("Already referred or invalid referral code");
           }
-        } else {
-          console.log("No referral code detected");
         }
 
         try {
