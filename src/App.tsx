@@ -24,7 +24,6 @@ import {
   getLeaderboard,
   getReferrals,
   setReferrer,
-  handleStartParameter,
 } from "./services/userService";
 import Leaderboard from "./components/Leaderboard";
 import Referral from "./components/Referral";
