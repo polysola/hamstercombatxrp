@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./App.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -24,7 +24,6 @@ import {
 } from "./services/userService";
 import Leaderboard from "./components/Leaderboard";
 import Referral from "./components/Referral";
-import { ReferralUser } from "./types/user";
 import { useReferral } from "./hooks/useReferral";
 
 interface LeaderboardUser {
@@ -118,12 +117,12 @@ const App: React.FC = () => {
     }
   };
 
-  const handleTabChange = async (tab: "main" | "leaderboard" | "referral") => {
+  const handleTabChange = (tab: "main" | "leaderboard" | "referral") => {
     setActiveTab(tab);
     if (tab === "leaderboard") {
-      await fetchLeaderboard();
+      fetchLeaderboard();
     } else if (tab === "referral") {
-      await refetchReferrals();
+      refetchReferrals();
     }
   };
 
