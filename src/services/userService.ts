@@ -4,14 +4,20 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 interface UserScore {
     username: string;
     score: number;
+    levelMin: number;
     lastUpdated: string;
 }
 
-export const saveUserScore = async (username: string, score: number) => {
+export const saveUserScore = async (
+    username: string,
+    score: number,
+    levelMin: number
+) => {
     try {
-        const userData: UserScore = {
+        const userData = {
             username,
             score,
+            levelMin,
             lastUpdated: new Date().toISOString()
         };
 

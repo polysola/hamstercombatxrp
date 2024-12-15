@@ -48,7 +48,7 @@ const App: React.FC = () => {
   ];
 
   const [levelIndex, setLevelIndex] = useState(6);
-  const [points, setPoints] = useState(4000);
+  const [points, setPoints] = useState(1000);
   const [clicks, setClicks] = useState<{ id: number; x: number; y: number }[]>(
     []
   );
@@ -63,6 +63,8 @@ const App: React.FC = () => {
     username: string;
     photoUrl: string;
   } | null>(null);
+
+  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -135,9 +137,21 @@ const App: React.FC = () => {
     const newPoints = points + pointsToAdd;
     setPoints(newPoints);
 
-    if (user?.username) {
-      await saveUserScore(user.username, newPoints);
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
     }
+
+    const timeout = setTimeout(async () => {
+      if (user?.username) {
+        await saveUserScore(
+          user.username,
+          newPoints,
+          levelMinPoints[levelIndex]
+        );
+      }
+    }, 5000);
+
+    setSaveTimeout(timeout);
 
     setClicks([...clicks, { id: Date.now(), x: e.pageX, y: e.pageY }]);
 
@@ -210,10 +224,14 @@ const App: React.FC = () => {
         <div className="px-4 z-10">
           <div className="flex items-center space-x-2 pt-4">
             <div className="p-1 rounded-lg bg-[#1d2025]">
-              <img src={logo} alt="Logo" className="w-6 h-6 rounded" />
+              <img
+                src={user?.photoUrl || logo}
+                alt="User Avatar"
+                className="w-6 h-6 rounded-full"
+              />
             </div>
             <div>
-              <p className="text-sm">Stingray Suits (Beta)</p>
+              <p className="text-sm">{user?.username || "Anonymous"}</p>
             </div>
           </div>
           <div className="flex items-center justify-between space-x-4 mt-1">
