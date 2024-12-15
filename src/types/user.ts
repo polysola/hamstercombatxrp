@@ -12,7 +12,7 @@ export interface UserScore {
 
 // Interface cho dữ liệu trả về từ API getReferrals
 export interface APIReferralUser extends UserScore {
-    earnedFromRef?: number;
+    earnedFromRef?: number;  // Được tính từ totalRefEarnings
 }
 
 // Interface cho dữ liệu đã được xử lý để hiển thị

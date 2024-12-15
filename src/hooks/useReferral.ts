@@ -1,22 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getReferrals } from '../services/userService';
-import { ReferralUser, APIReferralUser, UserScore } from '../types/user';
+import { ReferralUser, APIReferralUser } from '../types/user';
 
 export const useReferral = (username: string | undefined) => {
     const [referrals, setReferrals] = useState<ReferralUser[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const validateAPIResponse = (data: any): data is APIReferralUser[] => {
+    const validateAPIResponse = (data: unknown): data is APIReferralUser[] => {
         if (!Array.isArray(data)) return false;
         return data.every(item =>
             typeof item === 'object' &&
-            typeof item.username === 'string' &&
-            typeof item.score === 'number' &&
-            typeof item.levelMin === 'number' &&
-            typeof item.lastUpdated === 'string' &&
-            typeof item.referralCode === 'string' &&
-            typeof item.totalRefEarnings === 'number'
+            item !== null &&
+            typeof (item as any).username === 'string' &&
+            typeof (item as any).score === 'number' &&
+            typeof (item as any).levelMin === 'number' &&
+            typeof (item as any).lastUpdated === 'string' &&
+            typeof (item as any).referralCode === 'string' &&
+            typeof (item as any).totalRefEarnings === 'number'
         );
     };
 

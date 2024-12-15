@@ -6,7 +6,7 @@ export const saveUserScore = async (
     username: string,
     score: number,
     levelMin: number
-) => {
+): Promise<boolean> => {
     try {
         const tg = window.Telegram?.WebApp;
         const photoUrl = tg?.initDataUnsafe?.user?.photo_url;
@@ -49,7 +49,13 @@ export const getUserScore = async (username: string): Promise<UserScore | null> 
     }
 };
 
-export const getLeaderboard = async (limitCount: number = 10) => {
+interface LeaderboardEntry {
+    username: string;
+    score: number;
+    photoUrl: string;
+}
+
+export const getLeaderboard = async (limitCount: number = 10): Promise<LeaderboardEntry[]> => {
     try {
         const q = query(
             collection(db, "DataXRP"),
@@ -98,7 +104,7 @@ export const getReferrals = async (username: string): Promise<APIReferralUser[]>
     }
 };
 
-export const setReferrer = async (username: string, referrerCode: string) => {
+export const setReferrer = async (username: string, referrerCode: string): Promise<boolean> => {
     try {
         console.log('Setting referrer - Username:', username, 'Referrer code:', referrerCode);
 
@@ -160,7 +166,7 @@ export const setReferrer = async (username: string, referrerCode: string) => {
     }
 };
 
-export const processReferralReward = async (referral: string, amount: number) => {
+export const processReferralReward = async (referral: string, amount: number): Promise<void> => {
     try {
         console.log('Processing referral reward for:', referral, 'Amount:', amount);
 
@@ -199,7 +205,7 @@ export const processReferralReward = async (referral: string, amount: number) =>
     }
 };
 
-export const handleStartParameter = () => {
+export const handleStartParameter = (): string | null => {
     try {
         const tg = window.Telegram?.WebApp;
         console.log('Telegram WebApp:', tg);
@@ -235,7 +241,7 @@ export const handleStartParameter = () => {
     }
 };
 
-export const saveReferralCode = (code: string) => {
+export const saveReferralCode = (code: string): boolean => {
     try {
         localStorage.setItem('referral_code', code);
         console.log('Saved referral code to localStorage:', code);
