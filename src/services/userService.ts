@@ -1,5 +1,5 @@
 import { db } from '../config/firebase';
-import { doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 
 interface UserScore {
     username: string;
@@ -7,6 +7,16 @@ interface UserScore {
     levelMin: number;
     lastUpdated: string;
     photoUrl?: string;
+    referrer?: string;  // người giới thiệu
+    referralCode: string;  // mã giới thiệu
+    totalRefEarnings: number;  // tổng thu nhập từ ref
+}
+
+interface ReferralUser {
+    username: string;
+    score: number;
+    photoUrl?: string;
+    earnedFromRef: number;
 }
 
 export const saveUserScore = async (
@@ -26,7 +36,10 @@ export const saveUserScore = async (
             score,
             levelMin,
             photoUrl: photoUrl || existingData?.photoUrl || "/src/images/suit.png",
-            lastUpdated: new Date().toISOString()
+            lastUpdated: new Date().toISOString(),
+            referrer: existingData?.referrer || "",
+            referralCode: username,  // Use username as referral code
+            totalRefEarnings: existingData?.totalRefEarnings || 0
         };
 
         await setDoc(doc(db, "DataXRP", username), userData);
@@ -70,5 +83,51 @@ export const getLeaderboard = async (limitCount: number = 10) => {
     } catch (error) {
         console.error("Error getting leaderboard:", error);
         return [];
+    }
+};
+
+export const getReferrals = async (username: string) => {
+    try {
+        const q = query(
+            collection(db, "DataXRP"),
+            where("referrer", "==", username),
+            orderBy("totalRefEarnings", "desc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        const referrals = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                username: data.username,
+                score: data.score,
+                photoUrl: data.photoUrl,
+                earnedFromRef: data.totalRefEarnings
+            };
+        });
+
+        return referrals;
+    } catch (error) {
+        console.error("Error getting referrals:", error);
+        return [];
+    }
+};
+
+export const setReferrer = async (username: string, referrerCode: string) => {
+    try {
+        const userData = await getUserScore(username);
+        if (!userData || userData.referrer) return false;  // Already has referrer
+
+        const referrer = await getUserScore(referrerCode);
+        if (!referrer) return false;  // Invalid referrer
+
+        await setDoc(doc(db, "DataXRP", username), {
+            ...userData,
+            referrer: referrerCode
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Error setting referrer:", error);
+        return false;
     }
 };

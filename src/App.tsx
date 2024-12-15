@@ -22,8 +22,12 @@ import {
   saveUserScore,
   getUserScore,
   getLeaderboard,
+  getReferrals,
+  setReferrer,
 } from "./services/userService";
 import Leaderboard from "./components/Leaderboard";
+import Referral from "./components/Referral";
+import { ReferralUser } from "./types/user";
 
 interface LeaderboardUser {
   username: string;
@@ -84,7 +88,17 @@ const App: React.FC = () => {
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"main" | "leaderboard">("main");
+  const [activeTab, setActiveTab] = useState<
+    "main" | "leaderboard" | "referral"
+  >("main");
+
+  const [referralData, setReferralData] = useState<{
+    referralCode: string;
+    referrals: ReferralUser[];
+  }>({
+    referralCode: "",
+    referrals: [],
+  });
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -112,6 +126,11 @@ const App: React.FC = () => {
           photoUrl: tg.initDataUnsafe.user.photo_url || "/src/images/suit.png",
         };
         setUser(telegramUser);
+
+        if (tg?.initDataUnsafe?.start_param) {
+          const refCode = tg.initDataUnsafe.start_param;
+          await setReferrer(telegramUser.username, refCode);
+        }
 
         try {
           const savedScore = await getUserScore(telegramUser.username);
@@ -166,6 +185,27 @@ const App: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const fetchReferralData = async () => {
+      if (!user?.username) return;
+
+      try {
+        const refs = await getReferrals(user.username);
+        setReferralData({
+          referralCode: user.username,
+          referrals: refs,
+        });
+      } catch (error) {
+        console.error("Error fetching referrals:", error);
+      }
+    };
+
+    fetchReferralData();
+    const interval = setInterval(fetchReferralData, 30000);
+
+    return () => clearInterval(interval);
+  }, [user?.username]);
 
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();
@@ -443,7 +483,7 @@ const App: React.FC = () => {
                 </div>
               </div>
             </>
-          ) : (
+          ) : activeTab === "leaderboard" ? (
             // Leaderboard Screen
             <>
               <div className="px-4 z-10">
@@ -520,6 +560,36 @@ const App: React.FC = () => {
                 </div>
               </div>
             </>
+          ) : (
+            // Referral Screen
+            <>
+              <div className="px-4 z-10">
+                <div className="flex items-center space-x-2 pt-4">
+                  <div className="p-1 rounded-lg bg-[#1d2025]">
+                    <img
+                      src={user?.photoUrl || logo}
+                      alt="User Avatar"
+                      className="w-6 h-6 rounded-full"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm">{user?.username || "Anonymous"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
+                <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
+                  <div className="px-4 pt-6 flex-1 overflow-auto">
+                    <Referral
+                      users={referralData.referrals}
+                      currentUser={user?.username}
+                      referralCode={referralData.referralCode}
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Bottom Navigation */}
@@ -556,11 +626,15 @@ const App: React.FC = () => {
               <p className="mt-1">Ranking</p>
             </div>
             <div
-              onClick={notify}
-              className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
+              onClick={() => setActiveTab("referral")}
+              className={`text-center w-1/5 p-2 rounded-2xl transition-all duration-200 ${
+                activeTab === "referral"
+                  ? "bg-[#1c1f24] text-[#f3ba2f]"
+                  : "text-[#85827d] hover:bg-[#1c1f24]/50"
+              }`}
             >
               <Coins className="w-8 h-8 mx-auto" />
-              <p className="mt-1">Earn</p>
+              <p className="mt-1">Ref</p>
             </div>
             <div
               onClick={notify}
