@@ -16,9 +16,20 @@ import {
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
 import Mine from "./icons/Mine";
-import Friends from "./icons/Friends";
+import Friends from "./icons/Mine";
 import Coins from "./icons/Coins";
-import { saveUserScore, getUserScore } from "./services/userService";
+import {
+  saveUserScore,
+  getUserScore,
+  getLeaderboard,
+} from "./services/userService";
+import Leaderboard from "./components/Leaderboard";
+
+interface LeaderboardUser {
+  username: string;
+  score: number;
+  photoUrl?: string;
+}
 
 const App: React.FC = () => {
   const levelNames = [
@@ -68,6 +79,10 @@ const App: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+
+  const [activeTab, setActiveTab] = useState<"main" | "leaderboard">("main");
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -106,6 +121,14 @@ const App: React.FC = () => {
                   savedScore.score < levelMinPoints[index + 1])
             );
             setLevelIndex(newLevelIndex !== -1 ? newLevelIndex : 0);
+
+            if (savedScore.photoUrl !== telegramUser.photoUrl) {
+              await saveUserScore(
+                telegramUser.username,
+                savedScore.score,
+                savedScore.levelMin
+              );
+            }
           } else {
             setPoints(1000);
             setLevelIndex(0);
@@ -114,7 +137,6 @@ const App: React.FC = () => {
         } catch (error) {
           console.error("Error initializing user score:", error);
           toast.error("Error loading user data. Please try again.");
-          // Set default values if there's an error
           setPoints(1000);
           setLevelIndex(0);
         }
@@ -127,6 +149,19 @@ const App: React.FC = () => {
     };
 
     initializeApp();
+  }, []);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      const data = await getLeaderboard(10);
+      setLeaderboard(data);
+    };
+
+    fetchLeaderboard();
+    // Cập nhật leaderboard mỗi 30 giây
+    const interval = setInterval(fetchLeaderboard, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const calculateTimeLeft = (targetHour: number) => {
@@ -259,186 +294,285 @@ const App: React.FC = () => {
         </div>
       ) : (
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl">
-          <div className="px-4 z-10">
-            <div className="flex items-center space-x-2 pt-4">
-              <div className="p-1 rounded-lg bg-[#1d2025]">
-                <img
-                  src={user?.photoUrl || logo}
-                  alt="User Avatar"
-                  className="w-6 h-6 rounded-full"
-                />
-              </div>
-              <div>
-                <p className="text-sm">{user?.username || "Anonymous"}</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between space-x-4 mt-1">
-              <div className="flex items-center w-1/3">
-                <div className="w-full">
-                  <div className="flex justify-between">
-                    <p className="text-sm">{levelNames[levelIndex]}</p>
-                    <p className="text-sm">
-                      {levelIndex + 1}{" "}
-                      <span className="text-[#95908a]">
-                        / {levelNames.length}
-                      </span>
-                    </p>
+          {activeTab === "main" ? (
+            // Main Screen
+            <>
+              <div className="px-4 z-10">
+                <div className="flex items-center space-x-2 pt-4">
+                  <div className="p-1 rounded-lg bg-[#1d2025]">
+                    <img
+                      src={user?.photoUrl || logo}
+                      alt="User Avatar"
+                      className="w-6 h-6 rounded-full"
+                    />
                   </div>
-                  <div className="flex items-center mt-1 border-2 border-[#43433b] rounded-full">
-                    <div className="w-full h-2 bg-[#43433b]/[0.6] rounded-full">
-                      <div
-                        className="progress-gradient h-2 rounded-full"
-                        style={{ width: `${calculateProgress()}%` }}
-                      ></div>
+                  <div>
+                    <p className="text-sm">{user?.username || "Anonymous"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between space-x-4 mt-1">
+                  <div className="flex items-center w-1/3">
+                    <div className="w-full">
+                      <div className="flex justify-between">
+                        <p className="text-sm">{levelNames[levelIndex]}</p>
+                        <p className="text-sm">
+                          {levelIndex + 1}{" "}
+                          <span className="text-[#95908a]">
+                            / {levelNames.length}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex items-center mt-1 border-2 border-[#43433b] rounded-full">
+                        <div className="w-full h-2 bg-[#43433b]/[0.6] rounded-full">
+                          <div
+                            className="progress-gradient h-2 rounded-full"
+                            style={{ width: `${calculateProgress()}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    onClick={notify}
+                    className="flex items-center w-2/3 border-2 border-[#43433b] rounded-full px-4 py-[2px] bg-[#43433b]/[0.6] max-w-64 cursor-not-allowed"
+                  >
+                    <img src={binanceLogo} alt="Exchange" className="w-8 h-8" />
+                    <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
+                    <div className="flex-1 text-center">
+                      <p className="text-xs text-[#85827d] font-medium">
+                        Profit per hour
+                      </p>
+                      <div className="flex items-center justify-center space-x-1">
+                        <img
+                          src={dollarCoin}
+                          alt="Dollar Coin"
+                          className="w-[18px] h-[18px]"
+                        />
+                        <p className="text-sm">
+                          {formatProfitPerHour(profitPerHour)}
+                        </p>
+                        <Info size={20} className="text-[#43433b]" />
+                      </div>
+                    </div>
+                    <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
+                    <Settings className="text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
+                <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
+                  <div className="px-4 mt-6 flex justify-between gap-2">
+                    <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
+                      <div className="dot"></div>
+                      <img
+                        src={dailyReward}
+                        alt="Daily Reward"
+                        className="mx-auto w-12 h-12"
+                      />
+                      <p className="text-[10px] text-center text-white mt-1">
+                        Daily reward
+                      </p>
+                      <p className="text-[10px] font-medium text-center text-gray-400 mt-2">
+                        {dailyRewardTimeLeft}
+                      </p>
+                    </div>
+                    <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
+                      <div className="dot"></div>
+                      <img
+                        src={dailyCipher}
+                        alt="Daily Cipher"
+                        className="mx-auto w-12 h-12"
+                      />
+                      <p className="text-[10px] text-center text-white mt-1">
+                        Daily cipher
+                      </p>
+                      <p className="text-[10px] font-medium text-center text-gray-400 mt-2">
+                        {dailyCipherTimeLeft}
+                      </p>
+                    </div>
+                    <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
+                      <div className="dot"></div>
+                      <img
+                        src={dailyCombo}
+                        alt="Daily Combo"
+                        className="mx-auto w-12 h-12"
+                      />
+                      <p className="text-[10px] text-center text-white mt-1">
+                        Daily combo
+                      </p>
+                      <p className="text-[10px] font-medium text-center text-gray-400 mt-2">
+                        {dailyComboTimeLeft}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-4 mt-4 flex justify-center flex-col items-center">
+                    <p className="text-sm text-white mb-2">
+                      {user?.username || "Anonymous"}
+                    </p>
+                    <div className="px-4 py-2 flex items-center space-x-2">
+                      <img
+                        src={dollarCoin}
+                        alt="Dollar Coin"
+                        className="w-10 h-10"
+                      />
+                      <p className="text-4xl text-white">
+                        {points.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-4 mt-4 flex justify-center">
+                    <div
+                      className="w-80 h-80 p-4 rounded-full circle-outer"
+                      onClick={handleCardClick}
+                    >
+                      <div className="w-full h-full rounded-full circle-inner">
+                        <img
+                          src={mainCharacter}
+                          alt="Main Character"
+                          className="w-full h-full rounded-full"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div
-                onClick={notify}
-                className="flex items-center w-2/3 border-2 border-[#43433b] rounded-full px-4 py-[2px] bg-[#43433b]/[0.6] max-w-64 cursor-not-allowed"
-              >
-                <img src={binanceLogo} alt="Exchange" className="w-8 h-8" />
-                <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
-                <div className="flex-1 text-center">
-                  <p className="text-xs text-[#85827d] font-medium">
-                    Profit per hour
-                  </p>
-                  <div className="flex items-center justify-center space-x-1">
+            </>
+          ) : (
+            // Leaderboard Screen
+            <>
+              <div className="px-4 z-10">
+                <div className="flex items-center space-x-2 pt-4">
+                  <div className="p-1 rounded-lg bg-[#1d2025]">
                     <img
-                      src={dollarCoin}
-                      alt="Dollar Coin"
-                      className="w-[18px] h-[18px]"
+                      src={user?.photoUrl || logo}
+                      alt="User Avatar"
+                      className="w-6 h-6 rounded-full"
                     />
-                    <p className="text-sm">
-                      {formatProfitPerHour(profitPerHour)}
-                    </p>
-                    <Info size={20} className="text-[#43433b]" />
+                  </div>
+                  <div>
+                    <p className="text-sm">{user?.username || "Anonymous"}</p>
                   </div>
                 </div>
-                <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
-                <Settings className="text-white" />
+                <div className="flex items-center justify-between space-x-4 mt-1">
+                  <div className="flex items-center w-1/3">
+                    <div className="w-full">
+                      <div className="flex justify-between">
+                        <p className="text-sm">{levelNames[levelIndex]}</p>
+                        <p className="text-sm">
+                          {levelIndex + 1}{" "}
+                          <span className="text-[#95908a]">
+                            / {levelNames.length}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex items-center mt-1 border-2 border-[#43433b] rounded-full">
+                        <div className="w-full h-2 bg-[#43433b]/[0.6] rounded-full">
+                          <div
+                            className="progress-gradient h-2 rounded-full"
+                            style={{ width: `${calculateProgress()}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    onClick={notify}
+                    className="flex items-center w-2/3 border-2 border-[#43433b] rounded-full px-4 py-[2px] bg-[#43433b]/[0.6] max-w-64 cursor-not-allowed"
+                  >
+                    <img src={binanceLogo} alt="Exchange" className="w-8 h-8" />
+                    <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
+                    <div className="flex-1 text-center">
+                      <p className="text-xs text-[#85827d] font-medium">
+                        Profit per hour
+                      </p>
+                      <div className="flex items-center justify-center space-x-1">
+                        <img
+                          src={dollarCoin}
+                          alt="Dollar Coin"
+                          className="w-[18px] h-[18px]"
+                        />
+                        <p className="text-sm">
+                          {formatProfitPerHour(profitPerHour)}
+                        </p>
+                        <Info size={20} className="text-[#43433b]" />
+                      </div>
+                    </div>
+                    <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
+                    <Settings className="text-white" />
+                  </div>
+                </div>
               </div>
+
+              <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
+                <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
+                  <div className="px-4 pt-6 flex-1 overflow-auto">
+                    <Leaderboard
+                      users={leaderboard}
+                      currentUser={user?.username}
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Bottom Navigation */}
+          <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs p-1">
+            <div
+              onClick={() => setActiveTab("main")}
+              className={`text-center w-1/5 p-2 rounded-2xl transition-all duration-200 ${
+                activeTab === "main"
+                  ? "bg-[#1c1f24] text-[#f3ba2f]"
+                  : "text-[#85827d] hover:bg-[#1c1f24]/50"
+              }`}
+            >
+              <img
+                src={binanceLogo}
+                alt="Exchange"
+                className="w-8 h-8 mx-auto"
+              />
+              <p className="mt-1">Swap</p>
             </div>
-          </div>
-
-          <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
-            <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
-              <div className="px-4 mt-6 flex justify-between gap-2">
-                <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
-                  <div className="dot"></div>
-                  <img
-                    src={dailyReward}
-                    alt="Daily Reward"
-                    className="mx-auto w-12 h-12"
-                  />
-                  <p className="text-[10px] text-center text-white mt-1">
-                    Daily reward
-                  </p>
-                  <p className="text-[10px] font-medium text-center text-gray-400 mt-2">
-                    {dailyRewardTimeLeft}
-                  </p>
-                </div>
-                <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
-                  <div className="dot"></div>
-                  <img
-                    src={dailyCipher}
-                    alt="Daily Cipher"
-                    className="mx-auto w-12 h-12"
-                  />
-                  <p className="text-[10px] text-center text-white mt-1">
-                    Daily cipher
-                  </p>
-                  <p className="text-[10px] font-medium text-center text-gray-400 mt-2">
-                    {dailyCipherTimeLeft}
-                  </p>
-                </div>
-                <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
-                  <div className="dot"></div>
-                  <img
-                    src={dailyCombo}
-                    alt="Daily Combo"
-                    className="mx-auto w-12 h-12"
-                  />
-                  <p className="text-[10px] text-center text-white mt-1">
-                    Daily combo
-                  </p>
-                  <p className="text-[10px] font-medium text-center text-gray-400 mt-2">
-                    {dailyComboTimeLeft}
-                  </p>
-                </div>
-              </div>
-
-              <div className="px-4 mt-4 flex justify-center flex-col items-center">
-                <p className="text-sm text-white mb-2">
-                  {user?.username || "Anonymous"}
-                </p>
-                <div className="px-4 py-2 flex items-center space-x-2">
-                  <img
-                    src={dollarCoin}
-                    alt="Dollar Coin"
-                    className="w-10 h-10"
-                  />
-                  <p className="text-4xl text-white">
-                    {points.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="px-4 mt-4 flex justify-center">
-                <div
-                  className="w-80 h-80 p-4 rounded-full circle-outer"
-                  onClick={handleCardClick}
-                >
-                  <div className="w-full h-full rounded-full circle-inner">
-                    <img
-                      src={mainCharacter}
-                      alt="Main Character"
-                      className="w-full h-full rounded-full"
-                    />
-                  </div>
-                </div>
-              </div>
+            <div
+              onClick={notify}
+              className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
+            >
+              <Mine className="w-8 h-8 mx-auto" />
+              <p className="mt-1">Mine</p>
+            </div>
+            <div
+              onClick={() => setActiveTab("leaderboard")}
+              className={`text-center text-[#85827d] w-1/5 ${
+                activeTab === "leaderboard" ? "bg-[#1c1f24]" : ""
+              } m-1 p-2 rounded-2xl cursor-pointer`}
+            >
+              <Coins className="w-8 h-8 mx-auto" />
+              <p className="mt-1">Ranking</p>
+            </div>
+            <div
+              onClick={notify}
+              className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
+            >
+              <Coins className="w-8 h-8 mx-auto" />
+              <p className="mt-1">Earn</p>
+            </div>
+            <div
+              onClick={notify}
+              className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
+            >
+              <img
+                src={hamsterCoin}
+                alt="Airdrop"
+                className="w-8 h-8 mx-auto"
+              />
+              <p className="mt-1">Airdrop</p>
             </div>
           </div>
         </div>
       )}
-
-      {/* Bottom fixed div */}
-      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs">
-        <div className="text-center text-[#85827d] w-1/5 bg-[#1c1f24] m-1 p-2 rounded-2xl">
-          <img src={binanceLogo} alt="Exchange" className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Swap</p>
-        </div>
-        <div
-          onClick={notify}
-          className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
-        >
-          <Mine className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Mine</p>
-        </div>
-        <div
-          onClick={notify}
-          className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
-        >
-          <Friends className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Friends</p>
-        </div>
-        <div
-          onClick={notify}
-          className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
-        >
-          <Coins className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Earn</p>
-        </div>
-        <div
-          onClick={notify}
-          className="text-center text-[#85827d] w-1/5 cursor-not-allowed"
-        >
-          <img src={hamsterCoin} alt="Airdrop" className="w-8 h-8 mx-auto" />
-          <p className="mt-1">Airdrop</p>
-        </div>
-      </div>
 
       {clicks.map((click) => (
         <div
