@@ -107,7 +107,7 @@ const App: React.FC = () => {
     };
 
     initializeUserScore();
-  }, []);
+  }, [levelMinPoints]);
 
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();
@@ -219,7 +219,7 @@ const App: React.FC = () => {
     } else if (points < currentLevelMin && levelIndex > 0) {
       setLevelIndex(levelIndex - 1);
     }
-  }, [points, levelIndex, levelMinPoints, levelNames.length]);
+  }, [points, levelIndex, levelNames.length, levelMinPoints]);
 
   const formatProfitPerHour = (profit: number) => {
     if (profit >= 1000000000) return `+${(profit / 1000000000).toFixed(2)}B`;
