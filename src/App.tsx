@@ -150,18 +150,28 @@ const App: React.FC = () => {
               console.log("Parsed user data:", userData);
             }
 
-            startParam = params.get("start_param");
-            console.log("Parsed start param from initData:", startParam);
+            // Thử lấy start_param từ nhiều nguồn
+            startParam =
+              params.get("start_param") ||
+              params.get("start") ||
+              tg.initDataUnsafe?.start_param;
+
+            // Nếu không có, thử lấy từ URL
+            if (!startParam) {
+              const urlParams = new URLSearchParams(window.location.search);
+              startParam =
+                urlParams.get("start") || urlParams.get("tgWebAppStartParam");
+            }
+
+            console.log("Start param sources:", {
+              fromParams: params.get("start_param"),
+              fromStart: params.get("start"),
+              fromInitDataUnsafe: tg.initDataUnsafe?.start_param,
+              fromURL: new URLSearchParams(window.location.search).get("start"),
+            });
           }
         } catch (error) {
           console.error("Error parsing initData:", error);
-        }
-
-        // Fallback: Thử lấy từ URL nếu không có trong initData
-        if (!startParam) {
-          const urlParams = new URLSearchParams(window.location.search);
-          startParam = urlParams.get("tgWebAppStartParam");
-          console.log("Fallback start param from URL:", startParam);
         }
 
         console.log("Final start param:", startParam);
