@@ -4,6 +4,7 @@ export interface APIReferralUser {
     score: number;
     photoUrl?: string;
     earnedFromRef: number;
+    lastUpdated?: string;
 }
 
 // Interface cho dữ liệu đã được xử lý
@@ -13,4 +14,5 @@ export interface ReferralUser {
     photoUrl?: string;
     earnedFromRef: number;
     totalRefEarnings: number;
+    lastUpdated?: string;
 } 

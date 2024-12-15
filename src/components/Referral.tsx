@@ -20,6 +20,16 @@ const Referral: React.FC<ReferralProps> = ({
     toast.success("Referral link copied!");
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(date);
+  };
+
   const ReferralStats = () => {
     const totalReferrals = users.length;
     const totalEarned = users.reduce((sum, user) => {
@@ -142,7 +152,7 @@ const Referral: React.FC<ReferralProps> = ({
                 <div>
                   <p className="text-white font-medium">{user.username}</p>
                   <p className="text-xs text-[#85827d]">
-                    {new Date(user.lastUpdated || "").toLocaleDateString()}
+                    {formatDate(user.lastUpdated)}
                   </p>
                 </div>
               </div>

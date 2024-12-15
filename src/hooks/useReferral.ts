@@ -21,7 +21,8 @@ export const useReferral = (username: string | undefined) => {
                 score: user.score,
                 photoUrl: user.photoUrl,
                 earnedFromRef: user.earnedFromRef || 0,
-                totalRefEarnings: user.earnedFromRef || 0 // Sử dụng earnedFromRef làm totalRefEarnings
+                totalRefEarnings: user.earnedFromRef || 0,
+                lastUpdated: user.lastUpdated || new Date().toISOString()
             }));
             setReferrals(mappedData);
         } catch (err) {
