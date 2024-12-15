@@ -113,27 +113,44 @@ export const getReferrals = async (username: string) => {
 
 export const setReferrer = async (username: string, referrerCode: string) => {
     try {
-        console.log('Setting referrer for:', username, 'referrer:', referrerCode);
+        console.log('Setting referrer - Username:', username, 'Referrer code:', referrerCode);
+
+        // Kiểm tra nếu người dùng tự giới thiệu chính mình
+        if (username === referrerCode) {
+            console.log('Cannot refer yourself');
+            return false;
+        }
+
         const userData = await getUserScore(username);
         console.log('Current user data:', userData);
-        if (!userData || userData.referrer) {
-            console.log('User already has referrer or does not exist');
-            return false;  // Đã có người giới thiệu
+
+        if (!userData) {
+            console.log('User does not exist in database');
+            return false;
+        }
+
+        if (userData.referrer) {
+            console.log('User already has referrer:', userData.referrer);
+            return false;
         }
 
         const referrer = await getUserScore(referrerCode);
         console.log('Referrer data:', referrer);
+
         if (!referrer) {
-            console.log('Referrer does not exist');
-            return false;  // Người giới thiệu không tồn tại
+            console.log('Referrer does not exist in database');
+            return false;
         }
 
         // Cập nhật thông tin người được giới thiệu
-        await setDoc(doc(db, "DataXRP", username), {
+        const updatedUserData = {
             ...userData,
             referrer: referrerCode,
             totalRefEarnings: 0
-        });
+        };
+        console.log('Updating user data with:', updatedUserData);
+
+        await setDoc(doc(db, "DataXRP", username), updatedUserData);
         console.log('Successfully set referrer');
         return true;
     } catch (error) {
@@ -144,21 +161,37 @@ export const setReferrer = async (username: string, referrerCode: string) => {
 
 export const processReferralReward = async (referral: string, amount: number) => {
     try {
+        console.log('Processing referral reward for:', referral, 'Amount:', amount);
+
         // Lấy thông tin người được giới thiệu
         const referralUser = await getUserScore(referral);
-        if (!referralUser?.referrer) return;
+        console.log('Referral user data:', referralUser);
+
+        if (!referralUser?.referrer) {
+            console.log('User has no referrer, skipping reward');
+            return;
+        }
 
         // Tính toán phần thưởng (5% earnings)
         const reward = Math.floor(amount * 0.05);
+        console.log('Calculated reward:', reward);
 
         // Cập nhật số dư và tổng thu nhập từ ref cho người giới thiệu
         const referrer = await getUserScore(referralUser.referrer);
+        console.log('Referrer data:', referrer);
+
         if (referrer) {
-            await setDoc(doc(db, "DataXRP", referralUser.referrer), {
+            const updatedReferrerData = {
                 ...referrer,
                 score: referrer.score + reward,
                 totalRefEarnings: (referrer.totalRefEarnings || 0) + reward
-            });
+            };
+            console.log('Updating referrer data with:', updatedReferrerData);
+
+            await setDoc(doc(db, "DataXRP", referralUser.referrer), updatedReferrerData);
+            console.log('Successfully processed referral reward');
+        } else {
+            console.log('Referrer not found in database');
         }
     } catch (error) {
         console.error("Error processing referral reward:", error);

@@ -127,6 +127,9 @@ const App: React.FC = () => {
         };
         setUser(telegramUser);
 
+        console.log("Telegram initDataUnsafe:", tg.initDataUnsafe);
+        console.log("Current user:", telegramUser);
+
         if (tg?.initDataUnsafe?.start_param) {
           const refCode = tg.initDataUnsafe.start_param;
           console.log("Detected referral code:", refCode);
@@ -137,6 +140,8 @@ const App: React.FC = () => {
           } else {
             toast.info("Already referred or invalid referral code");
           }
+        } else {
+          console.log("No referral code detected in start_param");
         }
 
         try {
