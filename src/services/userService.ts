@@ -185,18 +185,25 @@ export const processReferralReward = async (referral: string, amount: number): P
 
         // Cập nhật số dư và tổng thu nhập từ ref cho người giới thiệu
         const referrer = await getUserScore(referralUser.referrer);
-        console.log('Referrer data:', referrer);
+        console.log('Referrer data before update:', referrer);
 
         if (referrer) {
-            const updatedReferrerData = {
+            const currentRefEarnings = referrer.totalRefEarnings || 0;
+            const updatedReferrerData: UserScore = {
                 ...referrer,
                 score: referrer.score + reward,
-                totalRefEarnings: (referrer.totalRefEarnings || 0) + reward
+                totalRefEarnings: currentRefEarnings + reward,
+                lastUpdated: new Date().toISOString()
             };
             console.log('Updating referrer data with:', updatedReferrerData);
 
             await setDoc(doc(db, "DataXRP", referralUser.referrer), updatedReferrerData);
-            console.log('Successfully processed referral reward');
+
+            // Verify update
+            const updatedReferrer = await getUserScore(referralUser.referrer);
+            console.log('Referrer data after update:', updatedReferrer);
+
+            console.log('Successfully processed referral reward. Previous totalRefEarnings:', currentRefEarnings, 'New totalRefEarnings:', updatedReferrer?.totalRefEarnings);
         } else {
             console.log('Referrer not found in database');
         }

@@ -42,28 +42,34 @@ export const useReferral = (username: string | undefined) => {
 
             // Tính toán earnings từ referrals trực tiếp
             const earnedFromRef = user.totalRefEarnings || 0;
+            console.log(`User ${user.username} base earnings:`, earnedFromRef);
 
             // Tính tổng earnings (bao gồm cả bonus)
             let totalEarned = earnedFromRef;
 
             // Nếu người này có referrals, tính thêm bonus từ điểm của người được giới thiệu
             if (referralCount > 0) {
+                console.log(`Calculating bonus for ${user.username}'s referrals:`, referrals);
                 const referralScores = referrals.reduce((sum, refUsername) => {
                     const refUser = data.find(u => u.username === refUsername);
-                    return sum + (refUser?.score || 0);
+                    const score = refUser?.score || 0;
+                    console.log(`Referral ${refUsername} score:`, score);
+                    return sum + score;
                 }, 0);
 
                 // Bonus là 5% từ điểm của mỗi người được giới thiệu
                 const bonus = Math.floor(referralScores * 0.05);
+                console.log(`Calculated bonus for ${user.username}:`, bonus);
                 totalEarned += bonus;
             }
 
-            console.log(`User ${user.username} stats:`, {
+            console.log(`User ${user.username} final stats:`, {
                 referralCount,
                 earnedFromRef,
                 totalEarned,
                 referrals,
-                totalRefEarnings: user.totalRefEarnings
+                totalRefEarnings: user.totalRefEarnings,
+                score: user.score
             });
 
             return {
