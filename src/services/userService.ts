@@ -129,13 +129,36 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
         console.log('Setting referrer - Username:', username, 'Referrer code:', referrerCode);
 
         // Kiểm tra nếu người dùng tự giới thiệu chính mình
-        if (username === referrerCode) {
+        if (username.toLowerCase() === referrerCode.toLowerCase()) {
             console.log('Cannot refer yourself');
             return false;
         }
 
         let userData = await getUserScore(username);
         console.log('Current user data:', userData);
+
+        // Kiểm tra chuỗi referrer để tránh vòng lặp
+        const checkReferrerChain = async (startUser: string, targetUser: string): Promise<boolean> => {
+            let currentUser = startUser;
+            const visited = new Set<string>();
+
+            while (currentUser) {
+                if (visited.has(currentUser)) return false; // Phát hiện vòng lặp
+                if (currentUser.toLowerCase() === targetUser.toLowerCase()) return false; // Tìm thấy user trong chuỗi
+
+                visited.add(currentUser);
+                const userDoc = await getUserScore(currentUser);
+                currentUser = userDoc?.referrer || '';
+            }
+            return true;
+        };
+
+        // Kiểm tra chuỗi referrer
+        const isValidChain = await checkReferrerChain(referrerCode, username);
+        if (!isValidChain) {
+            console.log('Invalid referral chain detected');
+            return false;
+        }
 
         // Nếu user chưa tồn tại, tạo mới
         if (!userData) {
@@ -146,10 +169,10 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
                 levelMin: 0,
                 photoUrl: "/src/images/suit.png",
                 lastUpdated: new Date().toISOString(),
-                referrer: referrerCode, // Set referrer ngay khi tạo mới
+                referrer: referrerCode,
                 referralCode: username,
                 totalRefEarnings: 0,
-                referralEarnings: {} // Khởi tạo object rỗng cho referralEarnings
+                referralEarnings: {}
             };
             await setDoc(doc(db, "DataXRP", username), userData);
             console.log('Created new user with referrer');
@@ -175,7 +198,7 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
             ...userData,
             referrer: referrerCode,
             totalRefEarnings: 0,
-            referralEarnings: userData.referralEarnings || {} // Giữ lại referralEarnings nếu có hoặc tạo mới
+            referralEarnings: userData.referralEarnings || {}
         };
         console.log('Updating user data with:', updatedUserData);
 
@@ -203,6 +226,11 @@ export const processReferralReward = async (referral: string, amount: number): P
 
         // Tính toán phần thưởng (5% earnings) cho người giới thiệu trực tiếp
         const reward = Math.floor(amount * 0.05);
+        if (reward <= 0) {
+            console.log('No reward to process');
+            return;
+        }
+
         console.log('Calculated reward for direct referrer:', reward);
 
         // Cập nhật số dư và tổng thu nhập từ ref cho người giới thiệu trực tiếp
@@ -228,6 +256,7 @@ export const processReferralReward = async (referral: string, amount: number): P
             const totalRefEarnings = Object.values(updatedReferralEarnings)
                 .reduce((sum, earning) => sum + earning.amount, 0);
 
+            // Tạo bản sao của directReferrer để tránh mất dữ liệu
             const updatedReferrerData: UserScore = {
                 ...directReferrer,
                 score: directReferrer.score + reward,
@@ -235,6 +264,16 @@ export const processReferralReward = async (referral: string, amount: number): P
                 referralEarnings: updatedReferralEarnings,
                 lastUpdated: new Date().toISOString()
             };
+
+            console.log('Current total earnings:', directReferrer.totalRefEarnings);
+            console.log('New total earnings:', totalRefEarnings);
+            console.log('Earnings difference:', totalRefEarnings - directReferrer.totalRefEarnings);
+
+            // Kiểm tra nếu tổng earnings mới nhỏ hơn tổng cũ
+            if (totalRefEarnings < directReferrer.totalRefEarnings) {
+                console.error('New total earnings is less than current total earnings, skipping update');
+                return;
+            }
 
             console.log('Updating direct referrer data with:', updatedReferrerData);
             await setDoc(doc(db, "DataXRP", referralUser.referrer), updatedReferrerData);

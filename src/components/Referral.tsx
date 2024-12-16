@@ -198,11 +198,13 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
   };
 
   return (
-    <div className="bg-[#272a2f] rounded-lg p-4">
+    <div className="bg-[#272a2f] rounded-lg p-4 h-full flex flex-col">
       <ReferralStats />
       <ReferralCode />
       {users.length > 0 ? (
-        <ReferralList />
+        <div className="flex-1 overflow-auto">
+          <ReferralList />
+        </div>
       ) : (
         <div className="text-center py-8">
           <div className="bg-[#1c1f24] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -147,6 +147,19 @@ const App: React.FC = () => {
           return;
         }
 
+        // Expand app to full height
+        tg.expand();
+
+        // Set viewport height
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty("--vh", `${vh}px`);
+
+        // Update on resize
+        window.addEventListener("resize", () => {
+          const vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty("--vh", `${vh}px`);
+        });
+
         const telegramUser = {
           username: tg.initDataUnsafe.user.username || "Anonymous",
           photoUrl: tg.initDataUnsafe.user.photo_url || "/src/images/suit.png",
