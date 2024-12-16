@@ -26,14 +26,23 @@ export const useReferral = (username: string | undefined) => {
 
         if (data.length === 0) return [];
 
-        // Tách người giới thiệu và danh sách được giới thiệu
-        const [currentUser, ...referralUsers] = data;
+        // Tìm current user (người có referralEarnings)
+        const currentUserIndex = data.findIndex(user => Object.keys(user.referralEarnings || {}).length > 0);
+        if (currentUserIndex === -1) {
+            console.error('Could not find current user with referral earnings');
+            return data as ReferralUser[];
+        }
+
+        // Đưa current user lên đầu danh sách
+        const currentUser = data[currentUserIndex];
+        const otherUsers = data.filter((_, index) => index !== currentUserIndex);
+
         console.log('Current user:', currentUser);
-        console.log('Referral users:', referralUsers);
+        console.log('Other users:', otherUsers);
 
         // Tạo map để theo dõi ai giới thiệu ai
         const referralMap = new Map<string, string[]>();
-        referralUsers.forEach(user => {
+        otherUsers.forEach(user => {
             if (user.referrer) {
                 const referrerRefs = referralMap.get(user.referrer) || [];
                 referrerRefs.push(user.username);
@@ -59,11 +68,11 @@ export const useReferral = (username: string | undefined) => {
             totalEarned: currentUserResult.totalEarned,
             referrals: currentUserResult.referrals,
             totalRefEarnings: currentUserResult.totalRefEarnings,
-            score: currentUserResult.score
+            referralEarnings: currentUserResult.referralEarnings
         });
 
         // Xử lý thông tin người được giới thiệu
-        const referralResults = referralUsers.map(user => {
+        const referralResults = otherUsers.map(user => {
             const userReferrals = referralMap.get(user.username) || [];
             return {
                 ...user,
@@ -74,8 +83,10 @@ export const useReferral = (username: string | undefined) => {
             };
         });
 
-        // Kết hợp kết quả
-        return [currentUserResult, ...referralResults];
+        // Kết hợp kết quả và sắp xếp theo earnings
+        const result = [currentUserResult, ...referralResults];
+        console.log('Final processed data:', result);
+        return result;
     };
 
     const fetchReferrals = useCallback(async () => {
