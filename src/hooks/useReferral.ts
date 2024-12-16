@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getReferrals } from '../services/userService';
-import { ReferralUser, APIReferralUser, ReferralEarning } from '../types/user';
+import { ReferralUser, APIReferralUser } from '../types/user';
 
 export const useReferral = (username: string | undefined) => {
     const [referrals, setReferrals] = useState<ReferralUser[]>([]);

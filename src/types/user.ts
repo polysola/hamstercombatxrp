@@ -29,5 +29,4 @@ export interface ReferralUser extends APIReferralUser {
     referrals: string[];    // Danh sách người được giới thiệu
     referralCount: number;  // Số lượng người được giới thiệu
     totalEarned: number;    // Tổng thu nhập (bao gồm cả bonus)
-    referralEarnings: { [key: string]: ReferralEarning }; // Chi tiết earnings từ từng người
 } 
