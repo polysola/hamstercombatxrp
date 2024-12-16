@@ -12,15 +12,15 @@ export const useReferral = (username: string | undefined) => {
         return data.every(item =>
             typeof item === 'object' &&
             item !== null &&
-            typeof (item as any).username === 'string' &&
-            typeof (item as any).score === 'number' &&
-            typeof (item as any).levelMin === 'number' &&
-            typeof (item as any).lastUpdated === 'string' &&
-            typeof (item as any).referralCode === 'string'
+            typeof (item as APIReferralUser).username === 'string' &&
+            typeof (item as APIReferralUser).score === 'number' &&
+            typeof (item as APIReferralUser).levelMin === 'number' &&
+            typeof (item as APIReferralUser).lastUpdated === 'string' &&
+            typeof (item as APIReferralUser).referralCode === 'string'
         );
     };
 
-    const calculateEarningsFromReferrals = (referralEarnings: { [key: string]: any } | undefined): number => {
+    const calculateEarningsFromReferrals = (referralEarnings: { [key: string]: ReferralUser } | undefined): number => {
         if (!referralEarnings) return 0;
         return Object.values(referralEarnings).reduce((total, earning) => total + (earning.amount || 0), 0);
     };
@@ -30,10 +30,10 @@ export const useReferral = (username: string | undefined) => {
 
         if (data.length === 0) return [];
 
-        // Tìm current user (người có referralEarnings)
-        const currentUserIndex = data.findIndex(user => user.referralEarnings && Object.keys(user.referralEarnings).length > 0);
+        // Tìm current user bằng username được truyền vào
+        const currentUserIndex = data.findIndex(user => user.username === username);
         if (currentUserIndex === -1) {
-            console.error('Could not find current user with referral earnings');
+            console.error('Could not find current user with username:', username);
             return data as ReferralUser[];
         }
 
@@ -53,7 +53,9 @@ export const useReferral = (username: string | undefined) => {
 
         // Xử lý thông tin người giới thiệu
         const currentUserReferrals = referralMap.get(currentUser.username) || [];
-        const currentUserEarnings = calculateEarningsFromReferrals(currentUser.referralEarnings);
+
+        // Tính toán earnings từ referralEarnings của current user
+        const currentUserEarnings = currentUser.totalRefEarnings || 0;
 
         const currentUserResult: ReferralUser = {
             ...currentUser,
@@ -67,7 +69,7 @@ export const useReferral = (username: string | undefined) => {
         // Xử lý thông tin người được giới thiệu
         const referralResults = otherUsers.map(user => {
             const userReferrals = referralMap.get(user.username) || [];
-            const userEarnings = calculateEarningsFromReferrals(user.referralEarnings);
+            const userEarnings = user.totalRefEarnings || 0;
 
             return {
                 ...user,
