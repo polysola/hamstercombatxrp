@@ -20,6 +20,11 @@ export const useReferral = (username: string | undefined) => {
         );
     };
 
+    const calculateEarningsFromReferrals = (referralEarnings: { [key: string]: any } | undefined): number => {
+        if (!referralEarnings) return 0;
+        return Object.values(referralEarnings).reduce((total, earning) => total + (earning.amount || 0), 0);
+    };
+
     const processReferralData = (data: APIReferralUser[]): ReferralUser[] => {
         console.log('Processing referral data:', data);
 
@@ -34,6 +39,7 @@ export const useReferral = (username: string | undefined) => {
 
         // Đưa current user lên đầu danh sách
         const currentUser = data[currentUserIndex];
+        console.log('Current user data:', currentUser);
         const otherUsers = data.filter((_, index) => index !== currentUserIndex);
 
         // Tạo map để theo dõi ai giới thiệu ai
@@ -50,7 +56,8 @@ export const useReferral = (username: string | undefined) => {
         const currentUserReferrals = referralMap.get(currentUser.username) || [];
 
         // Tính toán earnings từ referralEarnings của current user
-        const currentUserEarnings = currentUser.totalRefEarnings || 0;
+        const currentUserEarnings = calculateEarningsFromReferrals(currentUser.referralEarnings);
+        console.log('Current user earnings:', currentUserEarnings);
 
         const currentUserResult: ReferralUser = {
             ...currentUser,
@@ -64,7 +71,7 @@ export const useReferral = (username: string | undefined) => {
         // Xử lý thông tin người được giới thiệu
         const referralResults = otherUsers.map(user => {
             const userReferrals = referralMap.get(user.username) || [];
-            const userEarnings = user.totalRefEarnings || 0;
+            const userEarnings = calculateEarningsFromReferrals(user.referralEarnings);
 
             return {
                 ...user,
@@ -104,7 +111,7 @@ export const useReferral = (username: string | undefined) => {
             // Xử lý dữ liệu và tính toán earnings
             const processedData = processReferralData(rawData);
 
-            // Sắp xếp theo earnings từ cao đến thấp
+            // Sắp x���p theo earnings từ cao đến thấp
             processedData.sort((a, b) => b.totalEarned - a.totalEarned);
 
             setReferrals(processedData);
