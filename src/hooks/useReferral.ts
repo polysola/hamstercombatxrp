@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getReferrals } from '../services/userService';
-import { ReferralUser, APIReferralUser } from '../types/user';
+import { ReferralUser, APIReferralUser, ReferralEarning } from '../types/user';
 
 export const useReferral = (username: string | undefined) => {
     const [referrals, setReferrals] = useState<ReferralUser[]>([]);
@@ -20,14 +20,15 @@ export const useReferral = (username: string | undefined) => {
         );
     };
 
-    const calculateEarningsFromReferrals = (referralEarnings: { [key: string]: any } | undefined): number => {
+    const calculateEarningsFromReferrals = (referralEarnings: { [key: string]: ReferralEarning } | undefined): number => {
         if (!referralEarnings) return 0;
-        return Object.values(referralEarnings).reduce((total, earning) => total + (earning.amount || 0), 0);
+        console.log('Calculating earnings from:', referralEarnings);
+        const total = Object.values(referralEarnings).reduce((sum, earning) => sum + (earning.amount || 0), 0);
+        console.log('Total calculated:', total);
+        return total;
     };
 
     const processReferralData = (data: APIReferralUser[]): ReferralUser[] => {
-        console.log('Processing referral data:', data);
-
         if (data.length === 0) return [];
 
         // Tìm current user bằng username được truyền vào
@@ -56,8 +57,9 @@ export const useReferral = (username: string | undefined) => {
         const currentUserReferrals = referralMap.get(currentUser.username) || [];
 
         // Tính toán earnings từ referralEarnings của current user
-        const currentUserEarnings = calculateEarningsFromReferrals(currentUser.referralEarnings);
-        console.log('Current user earnings:', currentUserEarnings);
+        const currentUserEarnings = currentUser.referralEarnings ?
+            Object.values(currentUser.referralEarnings).reduce((total, earning) => total + earning.amount, 0) : 0;
+        console.log('Current user earnings:', currentUserEarnings, 'from:', currentUser.referralEarnings);
 
         const currentUserResult: ReferralUser = {
             ...currentUser,
@@ -71,7 +73,8 @@ export const useReferral = (username: string | undefined) => {
         // Xử lý thông tin người được giới thiệu
         const referralResults = otherUsers.map(user => {
             const userReferrals = referralMap.get(user.username) || [];
-            const userEarnings = calculateEarningsFromReferrals(user.referralEarnings);
+            const userEarnings = user.referralEarnings ?
+                Object.values(user.referralEarnings).reduce((total, earning) => total + earning.amount, 0) : 0;
 
             return {
                 ...user,
@@ -101,7 +104,6 @@ export const useReferral = (username: string | undefined) => {
         try {
             console.log('Fetching referrals for:', username);
             const rawData = await getReferrals(username);
-            console.log('Raw API data:', rawData);
 
             if (!validateAPIResponse(rawData)) {
                 console.error('Invalid data format:', rawData);
@@ -111,7 +113,7 @@ export const useReferral = (username: string | undefined) => {
             // Xử lý dữ liệu và tính toán earnings
             const processedData = processReferralData(rawData);
 
-            // Sắp x���p theo earnings từ cao đến thấp
+            // Sắp xếp theo earnings từ cao đến thấp
             processedData.sort((a, b) => b.totalEarned - a.totalEarned);
 
             setReferrals(processedData);
