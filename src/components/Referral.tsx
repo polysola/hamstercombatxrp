@@ -42,6 +42,17 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
     const currentUser = users[0];
     if (!currentUser) return null;
 
+    const totalEarnings = Object.values(currentUser.referralEarnings).reduce(
+      (sum, earning) => sum + earning.amount,
+      0
+    );
+
+    console.log("Total earnings calculation:", {
+      referralEarnings: currentUser.referralEarnings,
+      totalCalculated: totalEarnings,
+      totalFromDB: currentUser.totalRefEarnings,
+    });
+
     return (
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-gradient-to-br from-[#1c1f24] to-[#272a2f] p-4 rounded-xl text-center shadow-lg">
@@ -84,7 +95,7 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
           </div>
           <p className="text-sm text-[#85827d] mb-1">Total Earned</p>
           <p className="text-2xl font-bold text-[#f3ba2f]">
-            +{currentUser.totalRefEarnings.toLocaleString()}
+            +{totalEarnings.toLocaleString()}
           </p>
           <p className="text-xs text-[#85827d] mt-1">From referral rewards</p>
         </div>
@@ -131,14 +142,18 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
   );
 
   const ReferralList = () => {
+    const currentUser = users[0];
     const referralUsers = users.slice(1);
+
+    if (!currentUser) return null;
 
     return (
       <div>
         <h3 className="text-lg mb-4">Your Referrals</h3>
         <div className="space-y-3">
           {referralUsers.map((user, index) => {
-            const earnings = users[0]?.referralEarnings?.[user.username];
+            const earnings = currentUser.referralEarnings[user.username];
+            console.log(`Earnings for ${user.username}:`, earnings);
 
             return (
               <div
@@ -184,9 +199,11 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
                     <p className="text-xs text-[#85827d]">
                       earned from this user
                     </p>
-                    <p className="text-xs text-[#85827d]">
-                      Last earned: {formatDate(earnings?.lastUpdated)}
-                    </p>
+                    {earnings && (
+                      <p className="text-xs text-[#85827d]">
+                        Last earned: {formatDate(earnings.lastUpdated)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
