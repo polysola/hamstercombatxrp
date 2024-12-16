@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getReferrals } from '../services/userService';
-import { ReferralUser, APIReferralUser } from '../types/user';
+import { ReferralUser, APIReferralUser, ReferralEarning } from '../types/user';
 
 export const useReferral = (username: string | undefined) => {
     const [referrals, setReferrals] = useState<ReferralUser[]>([]);
@@ -18,11 +18,6 @@ export const useReferral = (username: string | undefined) => {
             typeof (item as APIReferralUser).lastUpdated === 'string' &&
             typeof (item as APIReferralUser).referralCode === 'string'
         );
-    };
-
-    const calculateEarningsFromReferrals = (referralEarnings: { [key: string]: ReferralUser } | undefined): number => {
-        if (!referralEarnings) return 0;
-        return Object.values(referralEarnings).reduce((total, earning) => total + (earning.amount || 0), 0);
     };
 
     const processReferralData = (data: APIReferralUser[]): ReferralUser[] => {
