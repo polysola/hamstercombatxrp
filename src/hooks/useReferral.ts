@@ -16,9 +16,13 @@ export const useReferral = (username: string | undefined) => {
             typeof (item as any).score === 'number' &&
             typeof (item as any).levelMin === 'number' &&
             typeof (item as any).lastUpdated === 'string' &&
-            typeof (item as any).referralCode === 'string' &&
-            typeof (item as any).totalRefEarnings === 'number'
+            typeof (item as any).referralCode === 'string'
         );
+    };
+
+    const calculateEarningsFromReferrals = (referralEarnings: { [key: string]: any } | undefined): number => {
+        if (!referralEarnings) return 0;
+        return Object.values(referralEarnings).reduce((total, earning) => total + (earning.amount || 0), 0);
     };
 
     const processReferralData = (data: APIReferralUser[]): ReferralUser[] => {
@@ -27,7 +31,7 @@ export const useReferral = (username: string | undefined) => {
         if (data.length === 0) return [];
 
         // Tìm current user (người có referralEarnings)
-        const currentUserIndex = data.findIndex(user => Object.keys(user.referralEarnings || {}).length > 0);
+        const currentUserIndex = data.findIndex(user => user.referralEarnings && Object.keys(user.referralEarnings).length > 0);
         if (currentUserIndex === -1) {
             console.error('Could not find current user with referral earnings');
             return data as ReferralUser[];
@@ -36,9 +40,6 @@ export const useReferral = (username: string | undefined) => {
         // Đưa current user lên đầu danh sách
         const currentUser = data[currentUserIndex];
         const otherUsers = data.filter((_, index) => index !== currentUserIndex);
-
-        console.log('Current user:', currentUser);
-        console.log('Other users:', otherUsers);
 
         // Tạo map để theo dõi ai giới thiệu ai
         const referralMap = new Map<string, string[]>();
@@ -50,36 +51,31 @@ export const useReferral = (username: string | undefined) => {
             }
         });
 
-        console.log('Referral map:', Object.fromEntries(referralMap));
-
         // Xử lý thông tin người giới thiệu
         const currentUserReferrals = referralMap.get(currentUser.username) || [];
+        const currentUserEarnings = calculateEarningsFromReferrals(currentUser.referralEarnings);
+
         const currentUserResult: ReferralUser = {
             ...currentUser,
-            earnedFromRef: currentUser.totalRefEarnings || 0,
+            earnedFromRef: currentUserEarnings,
             referrals: currentUserReferrals,
             referralCount: currentUserReferrals.length,
-            totalEarned: currentUser.totalRefEarnings || 0
+            totalEarned: currentUserEarnings,
+            referralEarnings: currentUser.referralEarnings || {}
         };
-
-        console.log('Current user final stats:', {
-            referralCount: currentUserResult.referralCount,
-            earnedFromRef: currentUserResult.earnedFromRef,
-            totalEarned: currentUserResult.totalEarned,
-            referrals: currentUserResult.referrals,
-            totalRefEarnings: currentUserResult.totalRefEarnings,
-            referralEarnings: currentUserResult.referralEarnings
-        });
 
         // Xử lý thông tin người được giới thiệu
         const referralResults = otherUsers.map(user => {
             const userReferrals = referralMap.get(user.username) || [];
+            const userEarnings = calculateEarningsFromReferrals(user.referralEarnings);
+
             return {
                 ...user,
-                earnedFromRef: user.totalRefEarnings || 0,
+                earnedFromRef: userEarnings,
                 referrals: userReferrals,
                 referralCount: userReferrals.length,
-                totalEarned: user.totalRefEarnings || 0
+                totalEarned: userEarnings,
+                referralEarnings: user.referralEarnings || {}
             };
         });
 
@@ -114,8 +110,6 @@ export const useReferral = (username: string | undefined) => {
             // Sắp xếp theo earnings từ cao đến thấp
             processedData.sort((a, b) => b.totalEarned - a.totalEarned);
 
-            console.log('Final processed data:', processedData);
-
             setReferrals(processedData);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch referrals';
@@ -134,7 +128,7 @@ export const useReferral = (username: string | undefined) => {
     const totalStats = referrals.reduce((acc, user) => ({
         totalReferrals: acc.totalReferrals + user.referralCount,
         totalEarnings: acc.totalEarnings + user.totalEarned,
-        directReferrals: acc.directReferrals + 1
+        directReferrals: acc.directReferrals + (user.referrals.length > 0 ? 1 : 0)
     }), {
         totalReferrals: 0,
         totalEarnings: 0,
