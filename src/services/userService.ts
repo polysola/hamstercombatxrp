@@ -23,7 +23,7 @@ export const saveUserScore = async (
             username,
             score,
             levelMin,
-            photoUrl: photoUrl || existingData?.photoUrl || "/src/images/suit.png",
+            photoUrl: photoUrl || existingData?.photoUrl || "/images/suit.png",
             lastUpdated: new Date().toISOString(),
             referrer: existingData?.referrer || "",
             referralCode: username,
@@ -73,7 +73,7 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<Leaderboa
             return {
                 username: data.username,
                 score: data.score,
-                photoUrl: data.photoUrl || "/src/images/suit.png"
+                photoUrl: data.photoUrl || "/images/suit.png"
             };
         });
 
@@ -171,7 +171,7 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
                 username,
                 score: 1000,
                 levelMin: 0,
-                photoUrl: "/src/images/suit.png",
+                photoUrl: "/images/suit.png",
                 lastUpdated: new Date().toISOString(),
                 referrer: referrerCode,
                 referralCode: username,

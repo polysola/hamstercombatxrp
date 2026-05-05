@@ -10,6 +10,8 @@ import {
   dollarCoin,
   logo,
   hammer,
+  egg,
+  hatchedEgg,
 } from "./images";
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
@@ -163,7 +165,7 @@ const App: React.FC = () => {
         if (!tg || !tg.initDataUnsafe?.user) {
           const mockUser = {
             username: "WebPlayer_Test",
-            photoUrl: "/src/images/suit.png",
+            photoUrl: logo,
           };
           setUser(mockUser);
           try {
@@ -190,7 +192,7 @@ const App: React.FC = () => {
 
         const telegramUser = {
           username: tg.initDataUnsafe.user.username || "Anonymous",
-          photoUrl: tg.initDataUnsafe.user.photo_url || "/src/images/suit.png",
+          photoUrl: tg.initDataUnsafe.user.photo_url || logo,
         };
         setUser(telegramUser);
 
@@ -422,7 +424,7 @@ const App: React.FC = () => {
                         <div className="egg-health"><div className="egg-health-bar" style={{ width: `${eggHealth}%` }} /></div>
                         <div className="w-80 h-80 p-4 rounded-full circle-outer" onClick={handleCardClick}>
                           <div className="w-full h-full rounded-full circle-inner">
-                            <img src={isHatching ? "/images/hatched-egg.png" : "/images/egg.png"} alt="Egg" className="w-full h-full rounded-full" />
+                            <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-full h-full rounded-full" />
                           </div>
                         </div>
                         {crackEffects.map((crack) => (

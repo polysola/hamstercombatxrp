@@ -52,7 +52,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                 #{index + 1}
               </span>
               <img
-                src={user.photoUrl || "/src/images/suit.png"}
+                src={user.photoUrl || "/images/suit.png"}
                 alt={user.username}
                 className="w-8 h-8 rounded-full border border-gray-700"
               />

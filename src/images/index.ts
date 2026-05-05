@@ -8,6 +8,9 @@ import mainCharacter from "./main-character.png";
 import hamsterCoin from "./hamster-coin.png";
 import logo from "./suit.png";
 import hammer from './hammer.png';
+import egg from './egg.png';
+import hatchedEgg from './hatched-egg.png';
+
 export {
     hamsterExchange,
     binanceLogo,
@@ -18,5 +21,7 @@ export {
     mainCharacter,
     hamsterCoin,
     logo,
-    hammer
+    hammer,
+    egg,
+    hatchedEgg
 };

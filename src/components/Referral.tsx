@@ -171,7 +171,7 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
                     <div className="relative">
                       <div className="absolute inset-0 bg-[#f3ba2f]/20 rounded-full blur-sm"></div>
                       <img
-                        src={user.photoUrl || "/src/images/suit.png"}
+                        src={user.photoUrl || "/images/suit.png"}
                         alt={user.username}
                         className="relative w-10 h-10 rounded-full border-2 border-[#f3ba2f]/20"
                       />
