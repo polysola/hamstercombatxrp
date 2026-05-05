@@ -61,16 +61,8 @@ interface SparkleEffect {
 
 const App: React.FC = () => {
   const levelNames = [
-    "Bronze",
-    "Silver",
-    "Gold",
-    "Platinum",
-    "Diamond",
-    "Epic",
-    "Legendary",
-    "Master",
-    "GrandMaster",
-    "Lord",
+    "Bronze", "Silver", "Gold", "Platinum", "Diamond", 
+    "Epic", "Legendary", "Master", "GrandMaster", "Lord"
   ];
 
   const levelMinPoints = useMemo(
@@ -249,59 +241,35 @@ const App: React.FC = () => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const rotateX = (y - rect.height / 2) / 10;
-    const rotateY = -(x - rect.width / 2) / 10;
+    const rotateX = (y - rect.height / 2) / 12;
+    const rotateY = -(x - rect.width / 2) / 12;
     card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
 
-    card.classList.add("egg-shake");
     setTimeout(() => {
-      card.classList.remove("egg-shake");
       card.style.transform = "";
-    }, 500);
+    }, 200);
 
-    const createCrackLines = (): CrackEffect[] => {
-      const numLines = 3;
-      const cracks: CrackEffect[] = [];
-      const baseLength = 40;
-      const timestamp = Date.now();
+    const newCracks: CrackEffect[] = [];
+    const timestamp = Date.now();
+    for (let i = 0; i < 2; i++) {
+       newCracks.push({
+         id: `crack-${timestamp}-${i}`,
+         x, y, angle: Math.random() * 360, length: 30 + Math.random() * 20, type: "main"
+       });
+    }
 
-      for (let i = 0; i < numLines; i++) {
-        const mainAngle = Math.random() * 60 - 30 + i * 120;
-        const mainLength = baseLength + Math.random() * 20;
-
-        cracks.push({
-          id: `main-${timestamp}-${i}`,
-          x, y, angle: mainAngle, length: mainLength, type: "main"
-        });
-
-        const numBranches = 2 + Math.floor(Math.random() * 2);
-        for (let j = 0; j < numBranches; j++) {
-          const branchAngle = mainAngle + (Math.random() * 40 - 20);
-          const branchLength = mainLength * (0.4 + Math.random() * 0.3);
-          cracks.push({
-            id: `branch-${timestamp}-${i}-${j}`,
-            x: x + Math.cos((mainAngle * Math.PI) / 180) * (mainLength * 0.3),
-            y: y + Math.sin((mainAngle * Math.PI) / 180) * (mainLength * 0.3),
-            angle: branchAngle, length: branchLength, type: "branch"
-          });
-        }
-      }
-      return cracks;
-    };
-
-    const newCracks = createCrackLines();
-    setCrackEffects((prev) => [...prev, ...newCracks]);
+    setCrackEffects((prev) => [...prev.slice(-20), ...newCracks]);
     setEggHealth((prev) => Math.max(0, prev - 10));
     setEggClicks((prev) => prev + 1);
     setClicks((prev) => [...prev, { id: Date.now(), x: e.pageX, y: e.pageY }]);
 
     if (eggClicks + 1 >= CLICKS_TO_HATCH) {
       setIsHatching(true);
-      const newSparkles = Array.from({ length: 12 }, (_, i) => ({
+      const newSparkles = Array.from({ length: 15 }, (_, i) => ({
         id: Date.now() + i,
         x: rect.width / 2,
         y: rect.height / 2,
-        angle: (Math.PI * 2 * i) / 12,
+        angle: (Math.PI * 2 * i) / 15,
       }));
       setSparkles(newSparkles);
       setBonusPoints({ amount: HATCH_BONUS, visible: true, x: rect.width / 2, y: rect.height / 2 });
@@ -313,7 +281,7 @@ const App: React.FC = () => {
         setCrackEffects([]);
         setSparkles([]);
         setBonusPoints(null);
-      }, 2000);
+      }, 1500);
     }
 
     const newPoints = points + pointsToAdd + (isHatching ? HATCH_BONUS : 0);
@@ -328,10 +296,6 @@ const App: React.FC = () => {
     setSaveTimeout(timeout);
   };
 
-  const handleAnimationEnd = (id: number) => {
-    setClicks((prevClicks) => prevClicks.filter((click) => click.id !== id));
-  };
-
   const formatProfitPerHour = (profit: number) => {
     if (profit >= 1000000000) return `+${(profit / 1000000000).toFixed(2)}B`;
     if (profit >= 1000000) return `+${(profit / 1000000).toFixed(2)}M`;
@@ -342,103 +306,125 @@ const App: React.FC = () => {
   const notify = () => toast("🕔 Coming Soon!");
 
   const renderHeader = () => (
-    <div className="px-4 z-10">
-      <div className="flex items-center space-x-2 pt-4">
-        <div className="p-1 rounded-lg bg-[#1d2025]">
-          <img src={user?.photoUrl || logo} alt="Avatar" className="w-6 h-6 rounded-full" />
+    <div className="px-4 z-10 pt-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-[2px] rounded-full bg-gradient-to-r from-[#f3ba2f] to-[#ffcf4d] shadow-lg shadow-[#f3ba2f]/30 ring-2 ring-[#f3ba2f]/20">
+            <img src={user?.photoUrl || logo} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-[#050608] object-cover" />
+          </div>
+          <div>
+            <p className="text-sm font-black tracking-tight text-white">{user?.username || "Anonymous"}</p>
+            <div className="flex items-center space-x-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              <p className="text-[10px] text-gray-400 font-bold">LEGENDARY PLAYER</p>
+            </div>
+          </div>
         </div>
-        <div><p className="text-sm">{user?.username || "Anonymous"}</p></div>
+        <button onClick={notify} className="p-2.5 rounded-2xl glass-card hover:bg-[#f3ba2f]/10 transition-all border-[#f3ba2f]/20">
+            <Settings size={20} className="text-[#f3ba2f]" />
+        </button>
       </div>
-      <div className="flex items-center justify-between space-x-4 mt-1">
-        <div className="flex items-center w-1/3">
-          <div className="w-full">
-            <div className="flex justify-between items-end mb-1">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#f3ba2f]">{levelNames[levelIndex]}</p>
-              <p className="text-[10px] font-medium text-gray-400">Level <span className="text-white">{levelIndex + 1}</span><span className="text-[#95908a]">/{levelNames.length}</span></p>
-            </div>
-            <div className="h-1.5 w-full bg-[#43433b]/[0.6] rounded-full overflow-hidden border border-white/5 shadow-inner">
-              <div className="progress-gradient h-full rounded-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(243,186,47,0.4)]" style={{ width: `${levelIndex >= levelNames.length - 1 ? 100 : Math.min(((points - levelMinPoints[levelIndex]) / (levelMinPoints[levelIndex + 1] - levelMinPoints[levelIndex])) * 100, 100)}%` }}></div>
-            </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="glass-card p-4 rounded-[24px] premium-shadow border-[#f3ba2f]/10">
+          <div className="flex justify-between items-end mb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#f3ba2f] gold-glow">
+              {levelNames[levelIndex]}
+            </p>
+            <p className="text-[11px] font-black text-white/40">
+              {levelIndex + 1}<span className="text-[#95908a]">/{levelNames.length}</span>
+            </p>
+          </div>
+          <div className="h-2.5 w-full bg-black/60 rounded-full overflow-hidden p-[1.5px] border border-white/5 shadow-inner">
+            <div 
+              className="progress-gradient h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(243,186,47,0.5)]" 
+              style={{ width: `${levelIndex >= levelNames.length - 1 ? 100 : Math.min(((points - levelMinPoints[levelIndex]) / (levelMinPoints[levelIndex + 1] - levelMinPoints[levelIndex])) * 100, 100)}%` }}
+            ></div>
           </div>
         </div>
-        <div onClick={notify} className="flex items-center w-2/3 border-2 border-[#43433b] rounded-full px-4 py-[2px] bg-[#43433b]/[0.6] max-w-64 cursor-not-allowed">
-          <img src={binanceLogo} alt="Exchange" className="w-8 h-8 object-contain" />
-          <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
-          <div className="flex-1 text-center">
-            <p className="text-xs text-[#85827d] font-medium">Profit per hour</p>
-            <div className="flex items-center justify-center space-x-1">
-              <img src={dollarCoin} alt="Dollar" className="w-[18px] h-[18px]" />
-              <p className="text-sm">{formatProfitPerHour(profitPerHour)}</p>
-              <Info size={20} className="text-[#43433b]" />
+
+        <div onClick={notify} className="glass-card p-4 rounded-[24px] premium-shadow border-[#f3ba2f]/10 flex items-center space-x-3 cursor-pointer group hover:bg-[#f3ba2f]/5 transition-all">
+          <div className="bg-gradient-to-br from-[#f3ba2f] to-[#ffcf4d] p-1.5 rounded-xl shadow-lg shadow-[#f3ba2f]/20 group-hover:rotate-12 transition-transform">
+             <img src={dollarCoin} alt="Dollar" className="w-6 h-6 invert brightness-0" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] text-[#85827d] font-black uppercase tracking-widest">Profit / hour</p>
+            <div className="flex items-center space-x-1">
+              <p className="text-sm font-black text-white">{formatProfitPerHour(profitPerHour)}</p>
+              <Info size={14} className="text-[#85827d]" />
             </div>
           </div>
-          <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
-          <Settings className="text-white" />
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-black flex justify-center">
-      <ToastContainer />
+    <div className="bg-[#050608] flex justify-center min-h-screen relative overflow-hidden">
+      <div className="aurora-1"></div>
+      <div className="aurora-2"></div>
+      
+      <ToastContainer theme="dark" position="top-center" />
+      
       {isLoading ? (
-        <div className="w-full h-screen flex items-center justify-center text-white">Loading...</div>
+        <div className="w-full h-screen flex items-center justify-center text-white z-50">
+          <div className="w-14 h-14 border-4 border-[#f3ba2f]/10 border-t-[#f3ba2f] rounded-full animate-spin"></div>
+        </div>
       ) : (
-        <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl">
+        <div className="w-full text-white h-screen font-bold flex flex-col max-w-xl relative z-10">
           {activeTab === "main" ? (
             <>
               {renderHeader()}
-              <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
-                <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
-                  <div className="px-4 mt-6 flex justify-between gap-2">
-                    <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
-                      <div className="dot"></div>
-                      <img src={dailyReward} alt="Reward" className="mx-auto w-12 h-12" />
-                      <p className="text-[10px] text-center text-white mt-1">Daily reward</p>
-                      <p className="text-[10px] font-medium text-center text-gray-400 mt-2">{dailyRewardTimeLeft}</p>
+              <div className="flex-grow mt-6 bg-gradient-to-b from-white/[0.03] to-transparent rounded-t-[50px] relative top-glow-premium border-t border-white/10">
+                <div className="px-4 mt-8 flex justify-between gap-3">
+                  {[
+                    { img: dailyReward, label: "Reward", time: dailyRewardTimeLeft },
+                    { img: dailyCipher, label: "Cipher", time: dailyCipherTimeLeft },
+                    { img: dailyCombo, label: "Combo", time: dailyComboTimeLeft }
+                  ].map((item, idx) => (
+                    <div key={idx} className="glass-card rounded-[22px] p-4 w-full relative group cursor-pointer hover:border-[#f3ba2f]/40 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-b from-[#f3ba2f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[22px]"></div>
+                      <img src={item.img} alt={item.label} className="mx-auto w-11 h-11 group-hover:scale-110 transition-transform" />
+                      <p className="text-[10px] text-center text-white/50 mt-3 font-black uppercase tracking-widest">{item.label}</p>
+                      <p className="text-[11px] font-black text-center text-[#f3ba2f] mt-1">{item.time}</p>
                     </div>
-                    <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
-                      <div className="dot"></div>
-                      <img src={dailyCipher} alt="Cipher" className="mx-auto w-12 h-12" />
-                      <p className="text-[10px] text-center text-white mt-1">Daily cipher</p>
-                      <p className="text-[10px] font-medium text-center text-gray-400 mt-2">{dailyCipherTimeLeft}</p>
-                    </div>
-                    <div className="bg-[#272a2f] rounded-lg px-4 py-2 w-full relative">
-                      <div className="dot"></div>
-                      <img src={dailyCombo} alt="Combo" className="mx-auto w-12 h-12" />
-                      <p className="text-[10px] text-center text-white mt-1">Daily combo</p>
-                      <p className="text-[10px] font-medium text-center text-gray-400 mt-2">{dailyComboTimeLeft}</p>
-                    </div>
+                  ))}
+                </div>
+
+                <div className="px-4 mt-10 flex justify-center flex-col items-center">
+                  <div className="flex items-center space-x-4 bg-white/5 px-8 py-4 rounded-[32px] border border-white/10 shadow-3xl premium-shadow">
+                    <img src={dollarCoin} alt="Dollar" className="w-12 h-12 drop-shadow-[0_0_20px_rgba(243,186,47,0.6)]" />
+                    <p className="text-5xl text-white font-black tracking-tighter">{points.toLocaleString()}</p>
                   </div>
-                  <div className="px-4 mt-4 flex justify-center flex-col items-center">
-                    <p className="text-sm text-white mb-2">{user?.username || "Anonymous"}</p>
-                    <div className="px-4 py-2 flex items-center space-x-2">
-                      <img src={dollarCoin} alt="Dollar" className="w-10 h-10" />
-                      <p className="text-4xl text-white">{points.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="px-4 mt-4 flex justify-center">
-                    <div className="relative">
-                      <div className={`egg-container ${isHatching ? "hatching" : ""}`} style={{ cursor: `url(${hammer}) 16 16, pointer` }}>
-                        <div className="egg-health"><div className="egg-health-bar" style={{ width: `${eggHealth}%` }} /></div>
-                        <div className="w-80 h-80 p-4 rounded-full circle-outer" onClick={handleCardClick}>
-                          <div className="w-full h-full rounded-full circle-inner">
-                            <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-full h-full rounded-full" />
-                          </div>
-                        </div>
-                        {crackEffects.map((crack) => (
-                          <React.Fragment key={crack.id}>
-                            <div className="crack-line" style={{ left: `${crack.x}px`, top: `${crack.y}px`, transform: `rotate(${crack.angle}deg)`, "--crack-length": `${crack.length}px` } as React.CSSProperties} />
-                          </React.Fragment>
-                        ))}
-                        {sparkles.map((sparkle) => (
-                          <div key={sparkle.id} className="sparkle" style={{ "--tx": `${Math.cos(sparkle.angle) * 100}px`, "--ty": `${Math.sin(sparkle.angle) * 100}px`, left: `${sparkle.x}px`, top: `${sparkle.y}px` } as React.CSSProperties} />
-                        ))}
-                        {bonusPoints && bonusPoints.visible && (
-                          <div className="bonus-points" style={{ left: `${bonusPoints.x}px`, top: `${bonusPoints.y}px` }}>+{bonusPoints.amount}</div>
-                        )}
+                </div>
+
+                <div className="px-4 mt-14 flex justify-center relative">
+                  <div className="egg-aura absolute w-[300px] h-[300px] rounded-full"></div>
+                  <div className="relative z-10">
+                    <div className="egg-container" style={{ cursor: `url(${hammer}) 16 16, pointer` }}>
+                      <div className="absolute top-[-50px] left-1/2 -translate-x-1/2 w-56 px-4">
+                         <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden p-[1.5px] border border-white/10 shadow-inner">
+                            <div className="h-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-full transition-all duration-300" style={{ width: `${eggHealth}%` }} />
+                         </div>
+                         <p className="text-[10px] text-center mt-1.5 text-white/40 tracking-[0.3em] font-black uppercase">Egg Integrity</p>
                       </div>
+
+                      <div className="w-80 h-80 p-8 rounded-full glass-card flex items-center justify-center relative overflow-hidden group shadow-[0_0_60px_rgba(0,0,0,0.5)]" onClick={handleCardClick}>
+                        <div className="absolute inset-0 bg-radial-gradient from-[#f3ba2f]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="w-full h-full rounded-full flex items-center justify-center">
+                          <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-[90%] h-[90%] object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)]" />
+                        </div>
+                      </div>
+
+                      {crackEffects.map((crack) => (
+                        <div key={crack.id} className="crack-line" style={{ left: `${crack.x}px`, top: `${crack.y}px`, transform: `rotate(${crack.angle}deg)`, "--crack-length": `${crack.length}px`, opacity: 0.8 } as React.CSSProperties} />
+                      ))}
+                      {sparkles.map((sparkle) => (
+                        <div key={sparkle.id} className="sparkle" style={{ "--tx": `${Math.cos(sparkle.angle) * 120}px`, "--ty": `${Math.sin(sparkle.angle) * 120}px`, left: `${sparkle.x}px`, top: `${sparkle.y}px` } as React.CSSProperties} />
+                      ))}
+                      {bonusPoints && bonusPoints.visible && (
+                        <div className="bonus-points" style={{ left: `${bonusPoints.x}px`, top: `${bonusPoints.y}px` }}>+{bonusPoints.amount}</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -447,60 +433,65 @@ const App: React.FC = () => {
           ) : activeTab === "leaderboard" ? (
             <>
               {renderHeader()}
-              <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
-                <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
-                  <div className="px-4 pt-6 flex-1 overflow-auto">
-                    <Leaderboard users={leaderboard} currentUser={user?.username} isLoading={isLeaderboardLoading} />
-                  </div>
+              <div className="flex-grow mt-6 bg-gradient-to-b from-white/[0.03] to-transparent rounded-t-[50px] relative top-glow-premium border-t border-white/10">
+                <div className="px-4 pt-10 flex-1 overflow-auto">
+                  <Leaderboard users={leaderboard} currentUser={user?.username} isLoading={isLeaderboardLoading} />
                 </div>
               </div>
             </>
           ) : (
             <>
-              <div className="px-4 z-10">
-                <div className="flex items-center space-x-2 pt-4">
-                  <div className="p-1 rounded-lg bg-[#1d2025]">
-                    <img src={user?.photoUrl || logo} alt="Avatar" className="w-6 h-6 rounded-full" />
+              <div className="px-6 z-10 pt-8 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="p-1 rounded-full bg-gradient-to-tr from-[#f3ba2f] to-transparent">
+                    <img src={user?.photoUrl || logo} alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-[#050608]" />
                   </div>
-                  <div><p className="text-sm">{user?.username || "Anonymous"}</p></div>
+                  <div>
+                    <p className="text-xl font-black text-white tracking-tight leading-none">{user?.username || "Anonymous"}</p>
+                    <p className="text-xs text-[#f3ba2f] font-black uppercase mt-1 tracking-widest">Affiliate Master</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
-                <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
-                  <div className="px-4 pt-6 flex-1 overflow-auto">
-                    {isReferralLoading ? (
-                      <div className="flex justify-center items-center h-40"><div className="text-white">Loading...</div></div>
-                    ) : (
-                      <Referral users={referrals} currentUser={user?.username} />
-                    )}
-                  </div>
+              <div className="flex-grow mt-8 bg-gradient-to-b from-white/[0.03] to-transparent rounded-t-[50px] relative top-glow-premium border-t border-white/10">
+                <div className="px-4 pt-10 flex-1 overflow-auto">
+                  {isReferralLoading ? (
+                    <div className="flex justify-center items-center h-40"><div className="w-10 h-10 border-4 border-[#f3ba2f]/10 border-t-[#f3ba2f] rounded-full animate-spin"></div></div>
+                  ) : (
+                    <Referral users={referrals} currentUser={user?.username} />
+                  )}
                 </div>
               </div>
             </>
           )}
 
-          <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-[#272a2f] flex justify-around items-center z-50 rounded-3xl text-xs p-1">
-            <div onClick={() => handleTabChange("main")} className={`text-center w-1/5 p-2 rounded-2xl transition-all duration-200 ${activeTab === "main" ? "bg-[#1c1f24] text-[#f3ba2f]" : "text-[#85827d] hover:bg-[#1c1f24]/50"}`}>
-              <Mine className="w-8 h-8 mx-auto p-0.5" />
-              <p className="mt-1">Mine</p>
-            </div>
-            <div onClick={notify} className="text-center w-1/5 p-2 rounded-2xl transition-all duration-200 text-[#85827d] hover:bg-[#1c1f24]/50 cursor-not-allowed">
-              <Swap className="w-8 h-8 mx-auto" /><p className="mt-1">Swap</p>
-            </div>
-            <div onClick={() => handleTabChange("leaderboard")} className={`text-center w-1/5 p-2 rounded-2xl transition-all duration-200 ${activeTab === "leaderboard" ? "bg-[#1c1f24] text-[#f3ba2f]" : "text-[#85827d] hover:bg-[#1c1f24]/50"}`}>
-              <RankingIcon className="w-8 h-8 mx-auto" /><p className="mt-1">Ranking</p>
-            </div>
-            <div onClick={() => handleTabChange("referral")} className={`text-center w-1/5 p-2 rounded-2xl transition-all duration-200 ${activeTab === "referral" ? "bg-[#1c1f24] text-[#f3ba2f]" : "text-[#85827d] hover:bg-[#1c1f24]/50"}`}>
-              <Friends className="w-8 h-8 mx-auto" /><p className="mt-1">Ref</p>
-            </div>
-            <div onClick={notify} className="text-center w-1/5 p-2 rounded-2xl transition-all duration-200 text-[#85827d] hover:bg-[#1c1f24]/50 cursor-not-allowed">
-              <Hamster className="w-8 h-8 mx-auto" /><p className="mt-1">Airdrop</p>
-            </div>
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-xl glass-card flex justify-around items-center z-50 rounded-[35px] p-2.5 premium-shadow border-white/10 ring-1 ring-white/5">
+            {[
+              { id: "main", icon: Mine, label: "Mine" },
+              { id: "swap", icon: Swap, label: "Swap", disabled: true },
+              { id: "leaderboard", icon: RankingIcon, label: "Ranking" },
+              { id: "referral", icon: Friends, label: "Friends" },
+              { id: "airdrop", icon: Hamster, label: "Airdrop", disabled: true }
+            ].map((tab) => (
+              <div
+                key={tab.id}
+                onClick={() => !tab.disabled && handleTabChange(tab.id as any)}
+                className={`text-center flex-1 py-3.5 rounded-[22px] transition-all duration-500 cursor-pointer relative group ${
+                  activeTab === tab.id
+                    ? "bg-gradient-to-b from-[#f3ba2f]/20 to-[#f3ba2f]/5 text-[#f3ba2f] shadow-lg shadow-[#f3ba2f]/10"
+                    : tab.disabled ? "opacity-20 grayscale" : "text-gray-500 hover:text-white/80"
+                }`}
+              >
+                <tab.icon className={`w-6 h-6 mx-auto transition-transform duration-300 ${activeTab === tab.id ? "scale-110" : "group-hover:scale-110"}`} />
+                <p className="text-[9px] mt-2 font-black uppercase tracking-[0.1em]">{tab.label}</p>
+                {activeTab === tab.id && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#f3ba2f] rounded-full shadow-[0_0_10px_#f3ba2f]"></div>}
+              </div>
+            ))}
           </div>
         </div>
       )}
+      
       {clicks.map((click) => (
-        <div key={click.id} className="absolute text-5xl font-bold opacity-0 text-white pointer-events-none" style={{ top: `${click.y - 42}px`, left: `${click.x - 28}px`, animation: `float 1s ease-out` }} onAnimationEnd={() => handleAnimationEnd(click.id)}>{pointsToAdd}</div>
+        <div key={click.id} className="absolute text-5xl font-black text-white pointer-events-none gold-glow z-[100] italic" style={{ top: `${click.y - 50}px`, left: `${click.x - 30}px`, animation: `float-up-fast 1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards` }}>{pointsToAdd}</div>
       ))}
     </div>
   );
