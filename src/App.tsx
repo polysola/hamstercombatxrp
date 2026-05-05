@@ -8,15 +8,12 @@ import {
   dailyCombo,
   dailyReward,
   dollarCoin,
-  hamsterCoin,
-  mainCharacter,
   logo,
   hammer,
 } from "./images";
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
 import Mine from "./icons/Mine";
-import Coins from "./icons/Coins";
 import Friends from "./icons/Friends";
 import RankingIcon from "./icons/RankingIcon";
 import Hamster from "./icons/Hamster";
@@ -58,14 +55,6 @@ interface SparkleEffect {
   x: number;
   y: number;
   angle: number;
-}
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: any;
-    };
-  }
 }
 
 const App: React.FC = () => {
@@ -169,7 +158,7 @@ const App: React.FC = () => {
     const initializeApp = async () => {
       try {
         setIsLoading(true);
-        const tg = window.Telegram?.WebApp;
+        const tg = (window as any).Telegram?.WebApp;
 
         if (!tg || !tg.initDataUnsafe?.user) {
           const mockUser = {
@@ -371,7 +360,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div onClick={notify} className="flex items-center w-2/3 border-2 border-[#43433b] rounded-full px-4 py-[2px] bg-[#43433b]/[0.6] max-w-64 cursor-not-allowed">
-          <img src={binanceLogo} alt="Exchange" className="w-8 h-8 object-contain rounded-full" />
+          <img src={binanceLogo} alt="Exchange" className="w-8 h-8 object-contain" />
           <div className="h-[32px] w-[2px] bg-[#43433b] mx-2"></div>
           <div className="flex-1 text-center">
             <p className="text-xs text-[#85827d] font-medium">Profit per hour</p>
@@ -438,11 +427,11 @@ const App: React.FC = () => {
                         </div>
                         {crackEffects.map((crack) => (
                           <React.Fragment key={crack.id}>
-                            <div className="crack-line" style={{ left: `${crack.x}px`, top: `${crack.y}px`, transform: `rotate(${crack.angle}deg)`, "--crack-length": `${crack.length}px` as any, opacity: crack.type === "branch" ? 0.6 : 0.9 }} />
+                            <div className="crack-line" style={{ left: `${crack.x}px`, top: `${crack.y}px`, transform: `rotate(${crack.angle}deg)`, "--crack-length": `${crack.length}px` } as React.CSSProperties} />
                           </React.Fragment>
                         ))}
                         {sparkles.map((sparkle) => (
-                          <div key={sparkle.id} className="sparkle" style={{ "--tx": `${Math.cos(sparkle.angle) * 100}px`, "--ty": `${Math.sin(sparkle.angle) * 100}px`, left: `${sparkle.x}px`, top: `${sparkle.y}px` } as any} />
+                          <div key={sparkle.id} className="sparkle" style={{ "--tx": `${Math.cos(sparkle.angle) * 100}px`, "--ty": `${Math.sin(sparkle.angle) * 100}px`, left: `${sparkle.x}px`, top: `${sparkle.y}px` } as React.CSSProperties} />
                         ))}
                         {bonusPoints && bonusPoints.visible && (
                           <div className="bonus-points" style={{ left: `${bonusPoints.x}px`, top: `${bonusPoints.y}px` }}>+{bonusPoints.amount}</div>
