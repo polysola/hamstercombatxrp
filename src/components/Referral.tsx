@@ -90,7 +90,7 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
         <h3 className="text-sm font-black text-white/60 uppercase tracking-widest mb-4 px-2">Friends List</h3>
         <div className="space-y-3">
           {users.slice(1).length > 0 ? (
-            users.slice(1).map((user, index) => (
+            users.slice(1).map((user) => (
               <div key={user.username} className="glass-card p-4 rounded-2xl flex items-center justify-between group hover:bg-white/5 transition-all">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1d2025] to-black border border-white/5 flex items-center justify-center overflow-hidden">
