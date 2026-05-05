@@ -305,36 +305,36 @@ const App: React.FC = () => {
   const notify = () => toast("🕔 Coming Soon!");
 
   const renderHeader = () => (
-    <div className="px-4 z-10 pt-4">
-      <div className="flex items-center justify-between mb-4">
+    <div className="px-4 z-10 pt-2 sm:pt-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center space-x-3">
           <div className="p-[2px] rounded-full bg-gradient-to-r from-[#f3ba2f] to-[#ffcf4d] shadow-lg shadow-[#f3ba2f]/30 ring-2 ring-[#f3ba2f]/20">
-            <img src={user?.photoUrl || logo} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-[#050608] object-cover" />
+            <img src={user?.photoUrl || logo} alt="Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-[#050608] object-cover" />
           </div>
           <div>
-            <p className="text-sm font-black tracking-tight text-white">{user?.username || "Anonymous"}</p>
+            <p className="text-xs sm:text-sm font-black tracking-tight text-white">{user?.username || "Anonymous"}</p>
             <div className="flex items-center space-x-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-              <p className="text-[10px] text-gray-400 font-bold">LEGENDARY PLAYER</p>
+              <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              <p className="text-[8px] sm:text-[10px] text-gray-400 font-bold">LEGENDARY PLAYER</p>
             </div>
           </div>
         </div>
-        <button onClick={notify} className="p-2.5 rounded-2xl glass-card hover:bg-[#f3ba2f]/10 transition-all border-[#f3ba2f]/20">
-            <Settings size={20} className="text-[#f3ba2f]" />
+        <button onClick={notify} className="p-2 sm:p-2.5 rounded-2xl glass-card hover:bg-[#f3ba2f]/10 transition-all border-[#f3ba2f]/20">
+            <Settings size={18} className="text-[#f3ba2f]" />
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="glass-card p-4 rounded-[24px] premium-shadow border-[#f3ba2f]/10">
-          <div className="flex justify-between items-end mb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#f3ba2f] gold-glow">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="glass-card p-3 sm:p-4 rounded-2xl sm:rounded-[24px] premium-shadow border-[#f3ba2f]/10">
+          <div className="flex justify-between items-end mb-1 sm:mb-2">
+            <p className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-[#f3ba2f] gold-glow">
               {levelNames[levelIndex]}
             </p>
-            <p className="text-[11px] font-black text-white/40">
+            <p className="text-[9px] sm:text-[11px] font-black text-white/40">
               {levelIndex + 1}<span className="text-[#95908a]">/{levelNames.length}</span>
             </p>
           </div>
-          <div className="h-2.5 w-full bg-black/60 rounded-full overflow-hidden p-[1.5px] border border-white/5 shadow-inner">
+          <div className="h-2 sm:h-2.5 w-full bg-black/60 rounded-full overflow-hidden p-[1px] border border-white/5 shadow-inner">
             <div 
               className="progress-gradient h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(243,186,47,0.5)]" 
               style={{ width: `${levelIndex >= levelNames.length - 1 ? 100 : Math.min(((points - levelMinPoints[levelIndex]) / (levelMinPoints[levelIndex + 1] - levelMinPoints[levelIndex])) * 100, 100)}%` }}
@@ -342,15 +342,15 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div onClick={notify} className="glass-card p-4 rounded-[24px] premium-shadow border-[#f3ba2f]/10 flex items-center space-x-3 cursor-pointer group hover:bg-[#f3ba2f]/5 transition-all">
-          <div className="bg-gradient-to-br from-[#f3ba2f] to-[#ffcf4d] p-1.5 rounded-xl shadow-lg shadow-[#f3ba2f]/20 group-hover:rotate-12 transition-transform">
-             <img src={dollarCoin} alt="Dollar" className="w-6 h-6 invert brightness-0" />
+        <div onClick={notify} className="glass-card p-3 sm:p-4 rounded-2xl sm:rounded-[24px] premium-shadow border-[#f3ba2f]/10 flex items-center space-x-2 sm:space-x-3 cursor-pointer group hover:bg-[#f3ba2f]/5 transition-all">
+          <div className="bg-gradient-to-br from-[#f3ba2f] to-[#ffcf4d] p-1 sm:p-1.5 rounded-lg sm:rounded-xl shadow-lg shadow-[#f3ba2f]/20 group-hover:rotate-12 transition-transform">
+             <img src={dollarCoin} alt="Dollar" className="w-5 h-5 sm:w-6 sm:h-6 invert brightness-0" />
           </div>
           <div className="flex-1">
-            <p className="text-[10px] text-[#85827d] font-black uppercase tracking-widest">Profit / hour</p>
+            <p className="text-[8px] sm:text-[10px] text-[#85827d] font-black uppercase tracking-widest">Profit / hour</p>
             <div className="flex items-center space-x-1">
-              <p className="text-sm font-black text-white">{formatProfitPerHour(profitPerHour)}</p>
-              <Info size={14} className="text-[#85827d]" />
+              <p className="text-[11px] sm:text-sm font-black text-white">{formatProfitPerHour(profitPerHour)}</p>
+              <Info size={12} className="text-[#85827d]" />
             </div>
           </div>
         </div>
@@ -370,48 +370,58 @@ const App: React.FC = () => {
           <div className="w-14 h-14 border-4 border-[#f3ba2f]/10 border-t-[#f3ba2f] rounded-full animate-spin"></div>
         </div>
       ) : (
-        <div className="w-full text-white h-screen font-bold flex flex-col max-w-xl relative z-10">
+        <div className="w-full text-white h-screen font-bold flex flex-col max-w-xl relative z-10 overflow-hidden">
           {activeTab === "main" ? (
             <>
               {renderHeader()}
-              <div className="flex-grow mt-6 bg-gradient-to-b from-white/[0.03] to-transparent rounded-t-[50px] relative top-glow-premium border-t border-white/10">
-                <div className="px-4 mt-8 flex justify-between gap-3">
+              <div className="flex-grow mt-4 sm:mt-6 bg-gradient-to-b from-white/[0.03] to-transparent rounded-t-[40px] sm:rounded-t-[50px] relative top-glow-premium border-t border-white/10">
+                <div className="px-4 mt-4 sm:mt-8 grid grid-cols-3 gap-2 sm:gap-3">
                   {[
                     { img: dailyReward, label: "Reward", time: dailyRewardTimeLeft },
                     { img: dailyCipher, label: "Cipher", time: dailyCipherTimeLeft },
                     { img: dailyCombo, label: "Combo", time: dailyComboTimeLeft }
                   ].map((item, idx) => (
-                    <div key={idx} className="glass-card rounded-[22px] p-4 w-full relative group cursor-pointer hover:border-[#f3ba2f]/40 transition-all">
-                      <div className="absolute inset-0 bg-gradient-to-b from-[#f3ba2f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[22px]"></div>
-                      <img src={item.img} alt={item.label} className="mx-auto w-11 h-11 group-hover:scale-110 transition-transform" />
-                      <p className="text-[10px] text-center text-white/50 mt-3 font-black uppercase tracking-widest">{item.label}</p>
-                      <p className="text-[11px] font-black text-center text-[#f3ba2f] mt-1">{item.time}</p>
+                    <div key={idx} className="glass-card rounded-xl sm:rounded-[22px] p-2 sm:p-4 relative group cursor-pointer hover:border-[#f3ba2f]/40 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-b from-[#f3ba2f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-[22px]"></div>
+                      <img src={item.img} alt={item.label} className="mx-auto w-8 h-8 sm:w-11 sm:h-11 group-hover:scale-110 transition-transform" />
+                      <p className="text-[7px] sm:text-[10px] text-center text-white/50 mt-1 sm:mt-3 font-black uppercase tracking-widest">{item.label}</p>
+                      <p className="text-[8px] sm:text-[11px] font-black text-center text-[#f3ba2f] mt-0.5 sm:mt-1">{item.time}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="px-4 mt-10 flex justify-center flex-col items-center">
-                  <div className="flex items-center space-x-4 bg-white/5 px-8 py-4 rounded-[32px] border border-white/10 shadow-3xl premium-shadow">
-                    <img src={dollarCoin} alt="Dollar" className="w-12 h-12 drop-shadow-[0_0_20px_rgba(243,186,47,0.6)]" />
-                    <p className="text-5xl text-white font-black tracking-tighter">{points.toLocaleString()}</p>
+                <div className="px-4 mt-6 sm:mt-10 flex justify-center flex-col items-center">
+                  <div className="flex items-center space-x-3 sm:space-x-4 bg-white/5 px-6 sm:px-8 py-2.5 sm:py-4 rounded-[24px] sm:rounded-[32px] border border-white/10 shadow-3xl premium-shadow">
+                    <img src={dollarCoin} alt="Dollar" className="w-8 h-8 sm:w-12 sm:h-12 drop-shadow-[0_0_20px_rgba(243,186,47,0.6)]" />
+                    <p className="text-3xl sm:text-5xl text-white font-black tracking-tighter">{points.toLocaleString()}</p>
                   </div>
                 </div>
 
-                <div className="px-4 mt-14 flex justify-center relative">
-                  <div className="egg-aura absolute w-[300px] h-[300px] rounded-full"></div>
+                <div className="px-4 mt-6 sm:mt-12 flex justify-center relative scale-90 sm:scale-100">
+                  <div className="egg-aura absolute w-[250px] h-[250px] sm:w-[300px] sm:h-[300px] rounded-full"></div>
                   <div className="relative z-10">
                     <div className="egg-container" style={{ cursor: `url(${hammer}) 16 16, pointer` }}>
-                      <div className="absolute top-[-50px] left-1/2 -translate-x-1/2 w-56 px-4">
-                         <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden p-[1.5px] border border-white/10 shadow-inner">
+                      <div className="absolute top-[-40px] left-1/2 -translate-x-1/2 w-48 sm:w-56 px-4">
+                         <div className="h-1.5 sm:h-2 w-full bg-black/60 rounded-full overflow-hidden p-[1px] border border-white/10 shadow-inner">
                             <div className="h-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-full transition-all duration-300" style={{ width: `${eggHealth}%` }} />
                          </div>
-                         <p className="text-[10px] text-center mt-1.5 text-white/40 tracking-[0.3em] font-black uppercase">Egg Integrity</p>
+                         <p className="text-[8px] sm:text-[10px] text-center mt-1 text-white/40 tracking-[0.3em] font-black uppercase">Egg Integrity</p>
                       </div>
 
-                      <div className="w-80 h-80 p-8 rounded-full glass-card flex items-center justify-center relative overflow-hidden group shadow-[0_0_60px_rgba(0,0,0,0.5)]" onClick={handleCardClick}>
+                      <div className="w-64 h-64 sm:w-80 sm:h-80 p-6 sm:p-8 rounded-full glass-card flex items-center justify-center relative overflow-hidden group shadow-[0_0_60px_rgba(0,0,0,0.5)]" onClick={handleCardClick}>
                         <div className="absolute inset-0 bg-radial-gradient from-[#f3ba2f]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="w-full h-full rounded-full flex items-center justify-center">
+                        <div className="w-full h-full rounded-full flex items-center justify-center relative">
                           <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-[90%] h-[90%] object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)]" />
+                          
+                          {/* Tap Instruction Animation */}
+                          {!isHatching && eggClicks < 5 && (
+                            <div className="absolute bottom-10 right-10 animate-bounce pointer-events-none">
+                              <svg className="w-8 h-8 text-[#f3ba2f] drop-shadow-glow" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,2C10.89,2 10,2.89 10,4V11L8.38,10.19C7.39,9.69 6.18,10.09 5.68,11.08L4.08,14.28C3.89,14.65 3.86,15.08 4,15.47L6,21H18V13H16V21H14V4C14,2.89 13.11,2 12,2Z" />
+                              </svg>
+                              <div className="bg-[#f3ba2f] text-black text-[8px] px-2 py-0.5 rounded-full font-black -mt-1">TAP!</div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -432,7 +442,7 @@ const App: React.FC = () => {
           ) : activeTab === "leaderboard" ? (
             <>
               {renderHeader()}
-              <div className="flex-grow mt-6 bg-gradient-to-b from-white/[0.03] to-transparent rounded-t-[50px] relative top-glow-premium border-t border-white/10">
+              <div className="flex-grow mt-6 bg-gradient-to-b from-white/[0.03] to-transparent rounded-t-[40px] relative top-glow-premium border-t border-white/10">
                 <div className="px-4 pt-10 flex-1 overflow-auto">
                   <Leaderboard users={leaderboard} currentUser={user?.username} isLoading={isLeaderboardLoading} />
                 </div>
@@ -463,7 +473,7 @@ const App: React.FC = () => {
             </>
           )}
 
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-xl glass-card flex justify-around items-center z-50 rounded-[35px] p-2.5 premium-shadow border-white/10 ring-1 ring-white/5">
+          <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2.5rem)] max-w-xl glass-card flex justify-around items-center z-50 rounded-[25px] sm:rounded-[35px] p-1.5 sm:p-2.5 premium-shadow border-white/10 ring-1 ring-white/5">
             {[
               { id: "main", icon: Mine, label: "Mine" },
               { id: "swap", icon: Swap, label: "Swap", disabled: true },
@@ -474,15 +484,20 @@ const App: React.FC = () => {
               <div
                 key={tab.id}
                 onClick={() => !tab.disabled && handleTabChange(tab.id as any)}
-                className={`text-center flex-1 py-3.5 rounded-[22px] transition-all duration-500 cursor-pointer relative group ${
+                className={`text-center flex-1 py-2 sm:py-3.5 rounded-xl sm:rounded-[22px] transition-all duration-500 cursor-pointer relative group ${
                   activeTab === tab.id
                     ? "bg-gradient-to-b from-[#f3ba2f]/20 to-[#f3ba2f]/5 text-[#f3ba2f] shadow-lg shadow-[#f3ba2f]/10"
-                    : tab.disabled ? "opacity-20 grayscale" : "text-gray-500 hover:text-white/80"
+                    : tab.disabled ? "opacity-30 grayscale" : "text-gray-500 hover:text-white/80"
                 }`}
               >
-                <tab.icon className={`w-6 h-6 mx-auto transition-transform duration-300 ${activeTab === tab.id ? "scale-110" : "group-hover:scale-110"}`} />
-                <p className="text-[9px] mt-2 font-black uppercase tracking-[0.1em]">{tab.label}</p>
-                {activeTab === tab.id && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#f3ba2f] rounded-full shadow-[0_0_10px_#f3ba2f]"></div>}
+                <div className="relative inline-block">
+                  <tab.icon className={`w-5 h-5 sm:w-6 sm:h-6 mx-auto transition-transform duration-300 ${activeTab === tab.id ? "scale-110" : "group-hover:scale-110"}`} />
+                  {tab.disabled && (
+                    <div className="absolute -top-1 -right-4 bg-red-500 text-[6px] px-1 rounded-full text-white font-black animate-pulse">SOON</div>
+                  )}
+                </div>
+                <p className="text-[7px] sm:text-[9px] mt-1 sm:mt-2 font-black uppercase tracking-[0.1em]">{tab.label}</p>
+                {activeTab === tab.id && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-[#f3ba2f] rounded-full shadow-[0_0_10px_#f3ba2f]"></div>}
               </div>
             ))}
           </div>
