@@ -64,7 +64,10 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<Leaderboa
             limit(limitCount)
         );
 
+        console.log("Fetching leaderboard from Firestore...");
         const querySnapshot = await getDocs(q);
+        console.log(`Found ${querySnapshot.docs.length} users in leaderboard`);
+        
         const leaderboard = querySnapshot.docs.map(doc => {
             const data = doc.data() as UserScore;
             return {
@@ -74,9 +77,10 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<Leaderboa
             };
         });
 
+        console.log("Leaderboard data processed:", leaderboard);
         return leaderboard;
     } catch (error) {
-        console.error("Error getting leaderboard:", error);
+        console.error("Error getting leaderboard detailed:", error);
         return [];
     }
 };

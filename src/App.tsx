@@ -11,6 +11,7 @@ import {
   hamsterCoin,
   mainCharacter,
   logo,
+  hammer,
 } from "./images";
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
@@ -96,6 +97,34 @@ const App: React.FC = () => {
   } = useReferral(user?.username);
   const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
 
+  const [eggHealth, setEggHealth] = useState(100);
+  const [eggClicks, setEggClicks] = useState(0);
+  const [isHatching, setIsHatching] = useState(false);
+  const [crackEffects, setCrackEffects] = useState<
+    Array<{
+      id: number;
+      x: number;
+      y: number;
+    }>
+  >([]);
+  const [sparkles, setSparkles] = useState<
+    Array<{
+      id: number;
+      x: number;
+      y: number;
+      angle: number;
+    }>
+  >([]);
+  const [bonusPoints, setBonusPoints] = useState<{
+    amount: number;
+    visible: boolean;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const CLICKS_TO_HATCH = 10;
+  const HATCH_BONUS = 500;
+
   useEffect(() => {
     if (user?.username) {
       refetchReferrals();
@@ -133,16 +162,35 @@ const App: React.FC = () => {
         const tg = window.Telegram?.WebApp;
 
         if (!tg || !tg.initDataUnsafe?.user) {
-          toast.error("Please login via Telegram WebApp!", {
-            position: "top-center",
-            autoClose: false,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
+          console.log("Running in Web mode - Using mock user");
+          const mockUser = {
+            username: "WebPlayer_Test",
+            photoUrl: "/src/images/suit.png",
+          };
+          setUser(mockUser);
+          
+          try {
+            const savedScore = await getUserScore(mockUser.username);
+            if (savedScore) {
+              setPoints(savedScore.score);
+              const newLevelIndex = levelMinPoints.findIndex(
+                (min, index) =>
+                  savedScore.score >= min &&
+                  (index === levelMinPoints.length - 1 ||
+                    savedScore.score < levelMinPoints[index + 1])
+              );
+              setLevelIndex(newLevelIndex !== -1 ? newLevelIndex : 0);
+            } else {
+              setPoints(1000);
+              setLevelIndex(0);
+              await saveUserScore(mockUser.username, 1000, levelMinPoints[0]);
+            }
+          } catch (error) {
+            console.error("Error initializing mock user score:", error);
+            setPoints(1000);
+            setLevelIndex(0);
+          }
+          
           setIsLoading(false);
           return;
         }
@@ -254,18 +302,103 @@ const App: React.FC = () => {
   const handleCardClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-    card.style.transform = `perspective(1000px) rotateX(${
-      -y / 10
-    }deg) rotateY(${x / 10}deg)`;
+    // Thêm hiệu ứng nghiêng ngả
+    const rotateX = (y - rect.height / 2) / 10;
+    const rotateY = -(x - rect.width / 2) / 10;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
 
+    // Thêm class shake
+    card.classList.add("egg-shake");
     setTimeout(() => {
+      card.classList.remove("egg-shake");
       card.style.transform = "";
-    }, 100);
+    }, 500);
 
-    const newPoints = points + pointsToAdd;
+    // Tạo hiệu ứng rạn nứt
+    const createCrackLines = () => {
+      const numLines = 3;
+      const cracks = [];
+      const baseLength = 40;
+      const timestamp = Date.now();
+
+      for (let i = 0; i < numLines; i++) {
+        const mainAngle = Math.random() * 60 - 30 + i * 120;
+        const mainLength = baseLength + Math.random() * 20;
+
+        cracks.push({
+          id: `main-${timestamp}-${i}`,
+          x,
+          y,
+          angle: mainAngle,
+          length: mainLength,
+          type: "main",
+        });
+
+        const numBranches = 2 + Math.floor(Math.random() * 2);
+        for (let j = 0; j < numBranches; j++) {
+          const branchAngle = mainAngle + (Math.random() * 40 - 20);
+          const branchLength = mainLength * (0.4 + Math.random() * 0.3);
+
+          cracks.push({
+            id: `branch-${timestamp}-${i}-${j}`,
+            x: x + Math.cos((mainAngle * Math.PI) / 180) * (mainLength * 0.3),
+            y: y + Math.sin((mainAngle * Math.PI) / 180) * (mainLength * 0.3),
+            angle: branchAngle,
+            length: branchLength,
+            type: "branch",
+          });
+        }
+      }
+      return cracks;
+    };
+
+    // Thêm vết nứt mới
+    const newCracks = createCrackLines();
+    setCrackEffects((prev) => [...prev, ...newCracks]);
+
+    // Giảm máu trứng
+    const healthLoss = 10;
+    setEggHealth((prev) => Math.max(0, prev - healthLoss));
+
+    // Tăng số lần click
+    setEggClicks((prev) => prev + 1);
+
+    // Kiểm tra nở trứng
+    if (eggClicks + 1 >= CLICKS_TO_HATCH) {
+      setIsHatching(true);
+      // Tạo sparkles và hiệu ứng nở
+      const newSparkles = Array.from({ length: 12 }, (_, i) => ({
+        id: Date.now() + i,
+        x: rect.width / 2,
+        y: rect.height / 2,
+        angle: (Math.PI * 2 * i) / 12,
+      }));
+      setSparkles(newSparkles);
+
+      // Thêm điểm thưởng
+      setBonusPoints({
+        amount: HATCH_BONUS,
+        visible: true,
+        x: rect.width / 2,
+        y: rect.height / 2,
+      });
+
+      // Reset trứng sau khi nở
+      setTimeout(() => {
+        setEggHealth(100);
+        setEggClicks(0);
+        setIsHatching(false);
+        setCrackEffects([]);
+        setSparkles([]);
+        setBonusPoints(null);
+      }, 2000);
+    }
+
+    // Cập nhật điểm và lưu
+    const newPoints = points + pointsToAdd + (isHatching ? HATCH_BONUS : 0);
     setPoints(newPoints);
 
     if (saveTimeout) {
@@ -283,27 +416,6 @@ const App: React.FC = () => {
     }, 500);
 
     setSaveTimeout(timeout);
-
-    setClicks([...clicks, { id: Date.now(), x: e.pageX, y: e.pageY }]);
-
-    const droplet = document.createElement("span");
-    droplet.textContent = "💧";
-    droplet.style.position = "absolute";
-    droplet.style.left = `${e.pageX}px`;
-    droplet.style.top = `${e.pageY}px`;
-    droplet.style.transition = "transform 1s ease, opacity 1s ease";
-    droplet.style.transform = "translateY(-50px)"; // Move upward
-    droplet.style.opacity = "1";
-    document.body.appendChild(droplet);
-
-    setTimeout(() => {
-      droplet.style.transform = "translateY(-150px)";
-      droplet.style.opacity = "0";
-    }, 100);
-
-    setTimeout(() => {
-      document.body.removeChild(droplet);
-    }, 1100);
   };
 
   const handleAnimationEnd = (id: number) => {
@@ -479,16 +591,87 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="px-4 mt-4 flex justify-center">
-                    <div
-                      className="w-80 h-80 p-4 rounded-full circle-outer"
-                      onClick={handleCardClick}
-                    >
-                      <div className="w-full h-full rounded-full circle-inner">
-                        <img
-                          src={mainCharacter}
-                          alt="Main Character"
-                          className="w-full h-full rounded-full"
-                        />
+                    <div className="relative">
+                      <div
+                        className={`egg-container ${
+                          isHatching ? "hatching" : ""
+                        }`}
+                        style={{ cursor: `url(${hammer}) 16 16, pointer` }}
+                      >
+                        <div className="egg-health">
+                          <div
+                            className="egg-health-bar"
+                            style={{ width: `${eggHealth}%` }}
+                          />
+                        </div>
+
+                        <div
+                          className="w-80 h-80 p-4 rounded-full circle-outer"
+                          onClick={handleCardClick}
+                        >
+                          <div className="w-full h-full rounded-full circle-inner">
+                            <img
+                              src={
+                                isHatching
+                                  ? "/images/hatched-egg.png"
+                                  : "/images/egg.png"
+                              }
+                              alt="Egg"
+                              className="w-full h-full rounded-full"
+                            />
+                          </div>
+                        </div>
+
+                        {crackEffects.map((crack) => (
+                          <React.Fragment key={crack.id}>
+                            <div
+                              className="crack-line"
+                              style={{
+                                left: `${crack.x}px`,
+                                top: `${crack.y}px`,
+                                transform: `rotate(${crack.angle}deg)`,
+                                "--crack-length": `${crack.length}px`,
+                                opacity: crack.type === "branch" ? 0.6 : 0.9,
+                              }}
+                            />
+                            {crack.type === "main" && (
+                              <div
+                                className="crack-impact"
+                                style={{
+                                  left: `${crack.x}px`,
+                                  top: `${crack.y}px`,
+                                  background:
+                                    "radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
+                                }}
+                              />
+                            )}
+                          </React.Fragment>
+                        ))}
+
+                        {sparkles.map((sparkle) => (
+                          <div
+                            key={sparkle.id}
+                            className="sparkle"
+                            style={{
+                              "--tx": `${Math.cos(sparkle.angle) * 100}px`,
+                              "--ty": `${Math.sin(sparkle.angle) * 100}px`,
+                              left: `${sparkle.x}px`,
+                              top: `${sparkle.y}px`,
+                            }}
+                          />
+                        ))}
+
+                        {bonusPoints && bonusPoints.visible && (
+                          <div
+                            className="bonus-points"
+                            style={{
+                              left: `${bonusPoints.x}px`,
+                              top: `${bonusPoints.y}px`,
+                            }}
+                          >
+                            +{bonusPoints.amount}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -564,16 +747,11 @@ const App: React.FC = () => {
               <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
                 <div className="absolute top-[2px] left-0 right-0 bottom-0 bg-[#1d2025] rounded-t-[46px] setBg">
                   <div className="px-4 pt-6 flex-1 overflow-auto">
-                    {isLeaderboardLoading ? (
-                      <div className="flex justify-center items-center h-40">
-                        <div className="text-white">Loading...</div>
-                      </div>
-                    ) : (
                       <Leaderboard
                         users={leaderboard}
                         currentUser={user?.username}
+                        isLoading={isLeaderboardLoading}
                       />
-                    )}
                   </div>
                 </div>
               </div>

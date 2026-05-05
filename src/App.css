@@ -66,3 +66,301 @@
 .setBg {
   background-image: url("/bg.png");
 }
+// Thêm vào file CSS của bạn
+.hatching {
+  animation: hatch 1.5s ease-in-out;
+}
+
+@keyframes hatch {
+  0% {
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+    filter: brightness(1.4);
+  }
+  75% {
+    transform: scale(1.1) rotate(-3deg);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
+  }
+}
+
+.bonus-points {
+  position: absolute;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #f3ba2f;
+  text-shadow: 0 0 10px rgba(243, 186, 47, 0.5);
+  pointer-events: none;
+  animation: floatUp 1.5s ease-out forwards;
+  z-index: 1000;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-50px) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+.crack-effect {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+  animation: crack 0.5s ease-out forwards;
+}
+
+@keyframes crack {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.5) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #f3ba2f;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.egg-container {
+  position: relative;
+  transition: transform 0.3s ease;
+  cursor: url("/images/hammer.png") 16 16, pointer !;
+}
+
+.egg-container.hatching {
+  animation: hatchingEffect 2s ease-in-out;
+}
+
+.egg-health {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.egg-health-bar {
+  height: 100%;
+  background: #f3ba2f;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.crack {
+  position: absolute;
+  font-size: 24px;
+  transform: translate(-50%, -50%);
+  animation: crackPop 0.5s ease-out forwards;
+  z-index: 10;
+}
+
+.crack-line {
+  position: absolute;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  transform-origin: left center;
+  animation: crackGrow 0.4s ease-out forwards;
+}
+
+.crack-line::before,
+.crack-line::after {
+  content: "";
+  position: absolute;
+  width: 50%;
+  height: 2px;
+  background: inherit;
+  transform-origin: left center;
+}
+
+.crack-line::before {
+  top: -2px;
+  transform: rotate(-25deg);
+}
+
+.crack-line::after {
+  bottom: -2px;
+  transform: rotate(25deg);
+}
+
+@keyframes crackPop {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes crackGrow {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    width: var(--crack-length);
+    opacity: 0.8;
+  }
+}
+
+.egg-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0) rotate(-2deg);
+  }
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0) rotate(2deg);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-2px, 0, 0) rotate(-3deg);
+  }
+  40%,
+  60% {
+    transform: translate3d(2px, 0, 0) rotate(3deg);
+  }
+}
+
+.bonus-points {
+  position: absolute;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #f3ba2f;
+  text-shadow: 0 0 15px rgba(243, 186, 47, 0.5);
+  pointer-events: none;
+  animation: bonusPoints 1.5s ease-out forwards;
+}
+
+@keyframes hatchingEffect {
+  0% {
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(1.15) rotate(-5deg);
+    filter: brightness(1.3);
+  }
+  50% {
+    transform: scale(1.3) rotate(5deg);
+    filter: brightness(1.6);
+  }
+  75% {
+    transform: scale(1.15) rotate(-3deg);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes crackEffect {
+  0% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes sparkleEffect {
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0) translate(var(--tx), var(--ty));
+    opacity: 0;
+  }
+}
+
+@keyframes bonusPoints {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-50px) scale(1.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+.crack-impact {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  animation: impactGrow 0.3s ease-out forwards;
+}
+
+@keyframes impactGrow {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Thêm cho các phần tử con */
+.circle-outer,
+.circle-inner,
+.egg-container img {
+  cursor: inherit;
+}

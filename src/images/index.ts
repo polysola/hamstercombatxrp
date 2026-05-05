@@ -7,6 +7,7 @@ import dailyCombo from "./daily-combo.png";
 import mainCharacter from "./main-character.png";
 import hamsterCoin from "./hamster-coin.png";
 import logo from "./suit.png";
+import hammer from './hammer.png';
 export {
     hamsterExchange,
     binanceLogo,
@@ -16,5 +17,6 @@ export {
     dailyCombo,
     mainCharacter,
     hamsterCoin,
-    logo
+    logo,
+    hammer
 };
