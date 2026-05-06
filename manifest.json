@@ -1,15 +1,15 @@
 {
-    "name": "Rabbit on Sui Game",
+    "name": "Vortex Ton",
     "version": "1.0.0",
-    "description": "A jumping rabbit game on Sui blockchain",
-    "author": "Your Name",
+    "description": "Vortex Ton - The Next Generation GameFi on TON Blockchain",
+    "author": "Vortex Team",
     "avatar": "logo.png",
     "permissions": [
         "user_info",
         "web_app_data",
         "web_app_set_background_color"
     ],
-    "bot_username": "your_bot_username",
+    "bot_username": "vortex_ton_bot",
     "platform": "all",
     "viewport_height": "100vh",
     "viewport_width": "100%",

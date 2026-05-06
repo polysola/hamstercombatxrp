@@ -10,6 +10,7 @@ import logo from "./suit.png";
 import hammer from './hammer.png';
 import egg from './egg.png';
 import hatchedEgg from './hatched-egg.png';
+import bg from './bg.png';
 
 export {
     hamsterExchange,
@@ -23,5 +24,6 @@ export {
     logo,
     hammer,
     egg,
-    hatchedEgg
+    hatchedEgg,
+    bg
 };
