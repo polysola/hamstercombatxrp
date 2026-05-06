@@ -1,6 +1,7 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { ReferralUser } from "../types/user";
+import { logo } from "../images";
 
 interface ReferralProps {
   users?: ReferralUser[];
@@ -94,7 +95,7 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
               <div key={user.username} className="glass-card p-4 rounded-2xl flex items-center justify-between group hover:bg-white/5 transition-all">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1d2025] to-black border border-white/5 flex items-center justify-center overflow-hidden">
-                    <img src={user.photoUrl || "/images/logo.png"} alt={user.username} className="w-full h-full object-cover" />
+                    <img src={user.photoUrl || logo} alt={user.username} className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-white">{user.username}</p>

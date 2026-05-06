@@ -1,4 +1,5 @@
 import React from "react";
+import { logo } from "../images";
 
 interface LeaderboardUser {
   username: string;
@@ -68,7 +69,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
               <div className="relative">
                 <div className="p-[1px] rounded-full bg-gradient-to-b from-white/20 to-transparent">
                   <img
-                    src={user.photoUrl || "/images/logo.png"}
+                    src={user.photoUrl || logo}
                     alt={user.username}
                     className="w-10 h-10 rounded-full object-cover bg-[#1d2025]"
                   />

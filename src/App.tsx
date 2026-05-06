@@ -164,8 +164,13 @@ const App: React.FC = () => {
         const tg = (window as any).Telegram?.WebApp;
 
         if (!tg || !tg.initDataUnsafe?.user) {
+          let guestName = localStorage.getItem("guest_name");
+          if (!guestName) {
+            guestName = "Guest_" + Math.random().toString(36).substring(2, 7).toUpperCase();
+            localStorage.setItem("guest_name", guestName);
+          }
           const mockUser = {
-            username: "WebPlayer_Test",
+            username: guestName,
             photoUrl: logo,
           };
           setUser(mockUser);
