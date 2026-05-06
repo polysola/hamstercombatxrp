@@ -286,7 +286,7 @@ const App: React.FC = () => {
     setHammerAnimations(prev => [...prev, { id: hammerId, x, y }]);
     setTimeout(() => {
       setHammerAnimations(prev => prev.filter(h => h.id !== hammerId));
-    }, 400);
+    }, 600);
 
     // Random points per click: 15 to 30
     const pointsToAdd = Math.floor(Math.random() * (30 - 15 + 1)) + 15;

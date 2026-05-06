@@ -120,8 +120,9 @@ body {
 
 @keyframes hammer-strike {
   0% { transform: rotate(-45deg) scale(1.5); opacity: 0; }
-  20% { transform: rotate(-20deg) scale(1.2); opacity: 1; }
-  40% { transform: rotate(15deg) scale(1); }
+  15% { transform: rotate(-20deg) scale(1.2); opacity: 1; }
+  45% { transform: rotate(15deg) scale(1); opacity: 1; }
+  80% { transform: rotate(20deg) scale(0.9); opacity: 1; }
   100% { transform: rotate(25deg) scale(0.8); opacity: 0; }
 }
 
@@ -138,7 +139,7 @@ body {
 }
 
 .animate-hammer-strike {
-  animation: hammer-strike 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  animation: hammer-strike 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
   transform-origin: bottom right;
 }
 
