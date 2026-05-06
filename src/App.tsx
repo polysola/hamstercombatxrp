@@ -224,7 +224,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!user?.username || isLoading) return;
-    
+
     // Points accumulation every second
     const profitInterval = setInterval(() => {
       setPoints((prev) => prev + profitPerHour / 3600);
@@ -232,9 +232,9 @@ const App: React.FC = () => {
 
     // Auto-save every 1 minute (60,000 ms)
     const autoSaveInterval = setInterval(async () => {
-       if (user?.username) {
-         await saveUserScore(user.username, points, levelMinPoints[levelIndex]);
-       }
+      if (user?.username) {
+        await saveUserScore(user.username, points, levelMinPoints[levelIndex]);
+      }
     }, 60000);
 
     return () => {
@@ -421,13 +421,13 @@ const App: React.FC = () => {
                     { img: dailyCipher, label: "Cipher", time: dailyCipherTimeLeft },
                     { img: dailyCombo, label: "Combo", time: dailyComboTimeLeft }
                   ].map((item, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={notify}
                       className="glass-card rounded-xl sm:rounded-[22px] p-2 sm:p-4 relative group cursor-pointer hover:border-[#f3ba2f]/40 transition-all"
                     >
                       <div className="absolute -top-1 -right-1 bg-red-500 text-[6px] sm:text-[8px] px-2 py-0.5 rounded-full text-white font-black animate-pulse z-20 shadow-[0_0_10px_rgba(239,68,68,0.5)] border border-red-400/30">SOON</div>
-                      
+
                       <div className="absolute inset-0 bg-gradient-to-b from-[#f3ba2f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-[22px]"></div>
                       <img src={item.img} alt={item.label} className="mx-auto w-8 h-8 sm:w-11 sm:h-11 group-hover:scale-110 transition-transform" />
                       <p className="text-[7px] sm:text-[10px] text-center text-white/50 mt-1 sm:mt-3 font-black uppercase tracking-widest">{item.label}</p>
@@ -438,7 +438,7 @@ const App: React.FC = () => {
 
                 <div className="px-4 mt-6 sm:mt-10 flex justify-center flex-col items-center">
                   <div className="flex items-center space-x-3 sm:space-x-4 bg-white/5 px-6 sm:px-8 py-2.5 sm:py-4 rounded-[24px] sm:rounded-[32px] border border-white/10 shadow-3xl premium-shadow backdrop-blur-md">
-                    <img src={dollarCoin} alt="Dollar" className="w-8 h-8 sm:w-12 sm:h-12 drop-shadow-[0_0_20px_rgba(243,186,47,0.6)]" />
+                    <img src={dollarCoin} alt="Dollar" className="w-8 h-8 sm:w-12 sm:h-12 drop-shadow-[0_0_20px_rgba(243,186,47,0.6)] rounded-full" />
                     <p className="text-3xl sm:text-5xl text-white font-black tracking-tighter">{Math.floor(points).toLocaleString()}</p>
                   </div>
                 </div>
@@ -466,12 +466,12 @@ const App: React.FC = () => {
 
                           {/* Hammer Swing Visual */}
                           {hammerAnimations.map(h => (
-                            <img 
-                              key={`hammer-${h.id}`} 
-                              src={hammer} 
-                              alt="Hammer" 
-                              className="absolute w-16 h-16 pointer-events-none z-50 animate-hammer-strike" 
-                              style={{ left: h.x - 32, top: h.y - 48 }} 
+                            <img
+                              key={`hammer-${h.id}`}
+                              src={hammer}
+                              alt="Hammer"
+                              className="absolute w-16 h-16 pointer-events-none z-50 animate-hammer-strike"
+                              style={{ left: h.x - 32, top: h.y - 48 }}
                             />
                           ))}
 
@@ -547,19 +547,19 @@ const App: React.FC = () => {
                 key={tab.id}
                 onClick={() => !tab.disabled && handleTabChange(tab.id as any)}
                 className={`text-center flex-1 py-2 sm:py-3.5 rounded-xl sm:rounded-[22px] transition-all duration-500 cursor-pointer relative group ${activeTab === tab.id
-                    ? "bg-gradient-to-b from-[#f3ba2f]/20 to-[#f3ba2f]/5 text-[#f3ba2f] shadow-lg shadow-[#f3ba2f]/10"
-                    : "text-gray-500 hover:text-white/80"
+                  ? "bg-gradient-to-b from-[#f3ba2f]/20 to-[#f3ba2f]/5 text-[#f3ba2f] shadow-lg shadow-[#f3ba2f]/10"
+                  : "text-gray-500 hover:text-white/80"
                   }`}
               >
                 <div className={`relative inline-block ${tab.disabled ? "opacity-30 grayscale" : ""}`}>
                   <tab.icon className={`w-5 h-5 sm:w-6 sm:h-6 mx-auto transition-transform duration-300 ${activeTab === tab.id ? "scale-110" : "group-hover:scale-110"}`} />
                 </div>
                 <p className={`text-[7px] sm:text-[9px] mt-1 sm:mt-2 font-black uppercase tracking-[0.1em] ${tab.disabled ? "opacity-30 grayscale" : ""}`}>{tab.label}</p>
-                
+
                 {tab.disabled && (
                   <div className="absolute -top-1 -right-4 bg-red-500 text-[6px] sm:text-[8px] px-2 py-0.5 rounded-full text-white font-black animate-pulse z-20 shadow-[0_0_10px_rgba(239,68,68,0.5)] border border-red-400/30">SOON</div>
                 )}
-                
+
                 {activeTab === tab.id && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-[#f3ba2f] rounded-full shadow-[0_0_10px_#f3ba2f]"></div>}
               </div>
             ))}

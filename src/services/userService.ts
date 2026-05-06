@@ -23,7 +23,7 @@ export const saveUserScore = async (
             username,
             score,
             levelMin,
-            photoUrl: photoUrl || existingData?.photoUrl || "/images/suit.png",
+            photoUrl: photoUrl || existingData?.photoUrl || "/images/logo.png",
             lastUpdated: new Date().toISOString(),
             referrer: existingData?.referrer || "",
             referralCode: username,
@@ -67,13 +67,13 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<Leaderboa
         console.log("Fetching leaderboard from Firestore...");
         const querySnapshot = await getDocs(q);
         console.log(`Found ${querySnapshot.docs.length} users in leaderboard`);
-        
+
         const leaderboard = querySnapshot.docs.map(doc => {
             const data = doc.data() as UserScore;
             return {
                 username: data.username,
                 score: data.score,
-                photoUrl: data.photoUrl || "/images/suit.png"
+                photoUrl: data.photoUrl || "/images/logo.png"
             };
         });
 
@@ -171,7 +171,7 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
                 username,
                 score: 1000,
                 levelMin: 0,
-                photoUrl: "/images/suit.png",
+                photoUrl: "/images/logo.png",
                 lastUpdated: new Date().toISOString(),
                 referrer: referrerCode,
                 referralCode: username,

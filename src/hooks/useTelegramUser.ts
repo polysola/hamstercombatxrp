@@ -14,7 +14,7 @@ export const useTelegramUser = () => {
     if (tg.initDataUnsafe?.user) {
       setUser({
         username: tg.initDataUnsafe.user.username || 'Anonymous',
-        photoUrl: tg.initDataUnsafe.user.photo_url || '/src/images/suit.png'
+        photoUrl: tg.initDataUnsafe.user.photo_url || '/src/images/logo.png'
       });
     }
   }, []);
