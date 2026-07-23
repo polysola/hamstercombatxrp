@@ -24,12 +24,13 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
     const calculateCountdown = () => {
       const now = new Date();
 
-      // Target: 02:00 AM tomorrow (Local / Vietnam time zone: ~4 hours away from 22:00)
+      // Target: 02:00:00 UTC on July 24, 2026 (corresponds to 09:00 AM Vietnam time on July 24th)
       const target = new Date();
-      target.setHours(2, 0, 0, 0);
+      target.setUTCHours(2, 0, 0, 0);
 
+      // If current UTC time is past 02:00 UTC, target 02:00 UTC tomorrow
       if (now.getTime() >= target.getTime()) {
-        target.setDate(target.getDate() + 1);
+        target.setUTCDate(target.getUTCDate() + 1);
       }
 
       const diff = target.getTime() - now.getTime();
@@ -99,7 +100,7 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
         <div className="bg-[#070510] p-4 rounded-2xl border border-[#00ff7b]/40 mb-3 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-[#00ff7b]/10 via-transparent to-transparent pointer-events-none"></div>
           <p className="text-[9px] text-[#00ff7b] font-black uppercase tracking-widest mb-1.5 neon-green-glow">
-            ⏱ LAUNCH COUNTDOWN (19:00 UTC)
+            ⏱ LAUNCH COUNTDOWN (02:00 UTC)
           </p>
 
           <div className="flex justify-center items-center space-x-2 sm:space-x-3 my-2">
@@ -128,7 +129,7 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
           {/* Timezone & Platform Badges */}
           <div className="flex flex-wrap justify-center gap-1.5 mt-3 pt-2 border-t border-white/10">
             <div className="bg-[#00e5ff]/10 border border-[#00e5ff]/30 px-3 py-1 rounded-lg">
-              <span className="text-[10px] text-[#00e5ff] font-black tracking-wider">🌐 LAUNCH DATE: JULY 23, 2026 - 19:00 UTC</span>
+              <span className="text-[10px] text-[#00e5ff] font-black tracking-wider">🌐 LAUNCH DATE: JULY 24, 2026 - 02:00 UTC</span>
             </div>
             <button
               onClick={() => window.open(LAUNCHPAD_LINK, "_blank")}
