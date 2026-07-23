@@ -16,7 +16,7 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
     }
 
     try {
-      const botUsername = "RobinhoodETH_Bot";
+      const botUsername = "EggRushRH_Bot";
       const miniAppLink = `https://t.me/${botUsername}/miniapp?startapp=${currentUser}`;
       await navigator.clipboard.writeText(miniAppLink);
       toast.success("Referral link copied!");

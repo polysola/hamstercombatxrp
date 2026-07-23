@@ -210,7 +210,7 @@ const App: React.FC = () => {
   };
 
   const handleSwapClick = () => {
-    toast.info("🔄 Robinhood ETH Swap Protocol coming soon in V2!");
+    toast.info("🔄 EggRush ETH Swap Protocol coming soon in V2!");
   };
 
   // Energy Restoration Timer - Exact +3 Energy per second
@@ -698,7 +698,7 @@ const App: React.FC = () => {
                 {/* TAP CORE TEXT & ETH MINING SUBTITLE */}
                 <div className="z-20 text-center mt-1">
                   <p className="text-base font-black text-[#00ff7b] tracking-wider uppercase neon-green-glow leading-none">TAP CORE</p>
-                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">Tap to mine Robinhood</p>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">Tap to mine EggRush</p>
                 </div>
 
               </div>
@@ -828,7 +828,7 @@ const App: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-base font-black text-[#f0eeff] tracking-tight leading-none">{user?.username || "Guest_89LPR"}</p>
-                    <p className="text-[9px] text-[#00ff7b] font-black uppercase mt-1 tracking-wider neon-green-glow">Robinhood ETH Master</p>
+                    <p className="text-[9px] text-[#00ff7b] font-black uppercase mt-1 tracking-wider neon-green-glow">EggRush Cyber Master</p>
                   </div>
                 </div>
               </div>
