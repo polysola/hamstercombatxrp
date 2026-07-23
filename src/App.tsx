@@ -42,6 +42,7 @@ import UserProfileModal from "./components/modals/UserProfileModal";
 import TokenLaunchModal from "./components/modals/TokenLaunchModal";
 import NotificationsModal, { NotificationItem } from "./components/modals/NotificationsModal";
 import DocsModal from "./components/modals/DocsModal";
+import UserDetailModal, { SelectedRankingUser } from "./components/modals/UserDetailModal";
 
 // TypeScript Definitions
 interface LeaderboardUser {
@@ -187,8 +188,12 @@ const App: React.FC = () => {
 
   const [user, setUser] = useState<{
     username: string;
-    photoUrl: string;
+    displayName?: string;
+    telegramHandle?: string;
+    photoUrl?: string;
   } | null>(null);
+
+  const [selectedRankingUser, setSelectedRankingUser] = useState<SelectedRankingUser | null>(null);
 
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -231,9 +236,16 @@ const App: React.FC = () => {
   // Exact Database Persistence Helper
   const persistScoreToDatabase = useCallback(async (newPoints: number) => {
     if (user?.username) {
-      await saveUserScore(user.username, newPoints, levelMinPoints[levelIndex], user.photoUrl);
+      await saveUserScore(
+        user.username,
+        newPoints,
+        levelMinPoints[levelIndex],
+        user.photoUrl,
+        user.displayName,
+        user.telegramHandle
+      );
     }
-  }, [user?.username, user?.photoUrl, levelIndex, levelMinPoints]);
+  }, [user?.username, user?.photoUrl, user?.displayName, user?.telegramHandle, levelIndex, levelMinPoints]);
 
   useEffect(() => {
     if (user?.username) {
@@ -314,13 +326,15 @@ const App: React.FC = () => {
       try {
         setIsLoading(true);
         let guestName = localStorage.getItem("guest_name");
-        if (!guestName) {
+        if (!guestName || guestName.includes("89LPR")) {
           const timestampId = Date.now().toString(36).toUpperCase().slice(-5);
           guestName = `Guest_${timestampId}`;
           localStorage.setItem("guest_name", guestName);
         }
 
-        let activeUsername = guestName;
+        let activeUsername = `@${guestName.toLowerCase()}`;
+        let activeDisplayName = `Cadet ${guestName.replace("Guest_", "")}`;
+        let activeTelegramHandle = "";
         let activePhotoUrl: string | undefined = undefined;
 
         const tg = (window as any).Telegram?.WebApp;
@@ -328,11 +342,14 @@ const App: React.FC = () => {
           tg.expand();
           const tgUser = tg.initDataUnsafe.user;
           const defaultId = Date.now().toString(36).toUpperCase().slice(-5);
-          const realName = tgUser.username
-            ? tgUser.username
-            : `${tgUser.first_name || ""} ${tgUser.last_name || ""}`.trim() || `User_${defaultId}`;
+          const fName = tgUser.first_name || "";
+          const lName = tgUser.last_name || "";
+          const fullName = `${fName} ${lName}`.trim() || "Cyber Agent";
+          const handle = tgUser.username ? `@${tgUser.username}` : `@user_${defaultId}`;
 
-          activeUsername = realName;
+          activeUsername = handle;
+          activeDisplayName = fullName;
+          activeTelegramHandle = tgUser.username || "";
           activePhotoUrl = tgUser.photo_url || undefined;
 
           const startapp = tg.initDataUnsafe.start_param;
@@ -341,7 +358,12 @@ const App: React.FC = () => {
           }
         }
 
-        setUser({ username: activeUsername, photoUrl: activePhotoUrl || "" });
+        setUser({
+          username: activeUsername,
+          displayName: activeDisplayName,
+          telegramHandle: activeTelegramHandle,
+          photoUrl: activePhotoUrl || "",
+        });
 
         // Load Firestore User Score & Real-time Offline Mining Profit
         try {
@@ -398,7 +420,14 @@ const App: React.FC = () => {
 
     const autoSaveInterval = setInterval(async () => {
       if (user?.username) {
-        await saveUserScore(user.username, points, levelMinPoints[levelIndex], user.photoUrl);
+        await saveUserScore(
+          user.username,
+          points,
+          levelMinPoints[levelIndex],
+          user.photoUrl,
+          user.displayName,
+          user.telegramHandle
+        );
       }
     }, 30000);
 
@@ -559,7 +588,7 @@ const App: React.FC = () => {
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#00ff7b] border-2 border-[#060a12]"></div>
           </div>
           <div className="shrink-0 cursor-pointer" onClick={() => setActiveModal("profile")}>
-            <p className="text-xs sm:text-sm font-black text-white tracking-tight truncate max-w-[90px] sm:max-w-[130px] leading-tight">{user?.username || "Guest_89LPR"}</p>
+            <p className="text-xs sm:text-sm font-black text-white tracking-tight truncate max-w-[90px] sm:max-w-[130px] leading-tight">{user?.displayName || user?.username || "Cyber Cadet"}</p>
             <div className="flex items-center space-x-1 mt-0.5">
               <span className="text-[9px]">🛡️</span>
               <span className="text-[9px] sm:text-[10px] font-black text-[#ff8800] uppercase tracking-wider">{levelNames[levelIndex]}</span>
@@ -785,6 +814,10 @@ const App: React.FC = () => {
       <DocsModal
         isOpen={activeModal === "docs"}
         onClose={() => setActiveModal(null)}
+      />
+      <UserDetailModal
+        user={selectedRankingUser}
+        onClose={() => setSelectedRankingUser(null)}
       />
 
       {isLoading ? (
@@ -1013,7 +1046,12 @@ const App: React.FC = () => {
               {renderHeader()}
               <div className="flex-grow mt-3 bg-gradient-to-b from-transparent via-[#060a12]/90 to-[#060a12] rounded-t-[30px] relative top-glow-premium border-t border-[#00ff7b]/30 overflow-hidden">
                 <div className="px-3 pt-4 flex-1 overflow-auto relative">
-                  <Leaderboard users={leaderboard} currentUser={user?.username} isLoading={isLeaderboardLoading} />
+                  <Leaderboard
+                    users={leaderboard}
+                    currentUser={user?.username}
+                    isLoading={isLeaderboardLoading}
+                    onSelectUser={setSelectedRankingUser}
+                  />
                 </div>
               </div>
             </div>
@@ -1025,7 +1063,7 @@ const App: React.FC = () => {
                     <img src={avatarSrc} alt="Avatar" className="w-10 h-10 rounded-full object-cover border-2 border-[#060a12] bg-[#00ff7b]/10 p-0.5" />
                   </div>
                   <div>
-                    <p className="text-base font-black text-[#f0eeff] tracking-tight leading-none">{user?.username || "Guest_89LPR"}</p>
+                    <p className="text-base font-black text-[#f0eeff] tracking-tight leading-none">{user?.displayName || user?.username || "Cyber Cadet"}</p>
                     <p className="text-[9px] text-[#00ff7b] font-black uppercase mt-1 tracking-wider neon-green-glow">EggRush Cyber Master</p>
                   </div>
                 </div>

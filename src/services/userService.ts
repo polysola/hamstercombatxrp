@@ -16,6 +16,8 @@ import {
 export interface UserScore {
     score: number;
     username: string;
+    displayName?: string;
+    telegramHandle?: string;
     photoUrl?: string;
     lastUpdated?: string;
     referrer?: string;
@@ -24,7 +26,14 @@ export interface UserScore {
 
 const COLLECTION_NAME = "DataXRP";
 
-export const saveUserScore = async (username: string, score: number, _minPoints?: number, photoUrl?: string): Promise<void> => {
+export const saveUserScore = async (
+    username: string, 
+    score: number, 
+    _minPoints?: number, 
+    photoUrl?: string,
+    displayName?: string,
+    telegramHandle?: string
+): Promise<void> => {
     try {
         const userRef = doc(db, COLLECTION_NAME, username);
         const userData: Partial<UserScore> = {
@@ -35,6 +44,12 @@ export const saveUserScore = async (username: string, score: number, _minPoints?
 
         if (photoUrl) {
             userData.photoUrl = photoUrl;
+        }
+        if (displayName) {
+            userData.displayName = displayName;
+        }
+        if (telegramHandle) {
+            userData.telegramHandle = telegramHandle;
         }
 
         await setDoc(userRef, userData, { merge: true });
@@ -59,7 +74,13 @@ export const getUserScore = async (username: string): Promise<UserScore | null> 
     }
 };
 
-export const getLeaderboard = async (limitCount: number = 10): Promise<{ username: string; score: number; photoUrl?: string }[]> => {
+export const getLeaderboard = async (limitCount: number = 10): Promise<{
+    username: string;
+    score: number;
+    displayName?: string;
+    telegramHandle?: string;
+    photoUrl?: string;
+}[]> => {
     try {
         const q = query(
             collection(db, COLLECTION_NAME),
@@ -68,7 +89,13 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<{ usernam
         );
 
         const querySnapshot = await getDocs(q);
-        const leaderboard: { username: string; score: number; photoUrl?: string }[] = [];
+        const leaderboard: {
+            username: string;
+            score: number;
+            displayName?: string;
+            telegramHandle?: string;
+            photoUrl?: string;
+        }[] = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
@@ -77,6 +104,8 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<{ usernam
             leaderboard.push({
                 username: uname,
                 score: data.score || 0,
+                displayName: data.displayName || undefined,
+                telegramHandle: data.telegramHandle || undefined,
                 photoUrl: data.photoUrl || undefined
             });
         });
@@ -282,7 +311,13 @@ export const resetOfflinePoints = async (username: string): Promise<void> => {
     }
 };
 
-export const saveUserScoreImmediate = async (username: string, score: number, photoUrl?: string): Promise<void> => {
+export const saveUserScoreImmediate = async (
+    username: string, 
+    score: number, 
+    photoUrl?: string,
+    displayName?: string,
+    telegramHandle?: string
+): Promise<void> => {
     try {
         const userRef = doc(db, COLLECTION_NAME, username);
         const updateData: any = {
@@ -292,6 +327,12 @@ export const saveUserScoreImmediate = async (username: string, score: number, ph
         };
         if (photoUrl) {
             updateData.photoUrl = photoUrl;
+        }
+        if (displayName) {
+            updateData.displayName = displayName;
+        }
+        if (telegramHandle) {
+            updateData.telegramHandle = telegramHandle;
         }
         await setDoc(userRef, updateData, { merge: true });
     } catch (error) {

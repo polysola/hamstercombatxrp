@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: { username: string; photoUrl: string } | null;
+  user: { username: string; displayName?: string; telegramHandle?: string; photoUrl?: string } | null;
   userPoints: number;
   walletAddress: string;
   levelName: string;
@@ -125,7 +125,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2">
-              <h4 className="text-base font-black text-white truncate">{user?.username || "Guest_89LPR"}</h4>
+              <h4 className="text-base font-black text-white truncate">{user?.displayName || user?.username || "Cyber Cadet"}</h4>
               <span className="text-[9px] font-black text-[#ff8800] bg-[#ff8800]/10 px-2 py-0.5 rounded-md border border-[#ff8800]/30 uppercase shrink-0">
                 {levelName}
               </span>

@@ -1,9 +1,11 @@
 import React from "react";
 import { logo } from "../images";
 
-interface LeaderboardUser {
+export interface LeaderboardUser {
   username: string;
   score: number;
+  displayName?: string;
+  telegramHandle?: string;
   photoUrl?: string;
 }
 
@@ -11,12 +13,14 @@ interface LeaderboardProps {
   users?: LeaderboardUser[];
   currentUser?: string;
   isLoading?: boolean;
+  onSelectUser?: (user: LeaderboardUser & { rank: number }) => void;
 }
 
 const Leaderboard: React.FC<LeaderboardProps> = ({
   users = [],
   currentUser,
   isLoading = false,
+  onSelectUser,
 }) => {
   if (isLoading) {
     return (
@@ -53,17 +57,23 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
           const apiAvatar = `https://api.dicebear.com/7.x/bottts/png?seed=${encodeURIComponent(user.username)}&size=96`;
           const avatarSrc = isRealTelegramAvatar ? user.photoUrl! : apiAvatar;
 
+          const formattedFullName = user.displayName || user.username;
+          const formattedUsername = user.username.startsWith("@")
+            ? user.username
+            : `@${user.username}`;
+
           return (
             <div
               key={user.username}
-              className={`flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${
+              onClick={() => onSelectUser && onSelectUser({ rank: index + 1, ...user })}
+              className={`flex items-center justify-between p-3.5 sm:p-4 rounded-2xl transition-all duration-300 cursor-pointer hover:scale-[1.01] active:scale-[0.99] ${
                 user.username === currentUser
                   ? "bg-gradient-to-r from-[#00ff7b]/20 via-[#00ff7b]/10 to-transparent border border-[#00ff7b]/40 shadow-[0_0_20px_rgba(0,255,123,0.2)]"
-                  : "glass-card hover:bg-white/5 border-[rgba(155,0,255,0.3)]"
+                  : "glass-card hover:bg-white/10 border-[rgba(155,0,255,0.3)]"
               }`}
             >
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center justify-center w-8">
+              <div className="flex items-center space-x-3.5">
+                <div className="flex items-center justify-center w-7">
                   {index === 0 ? (
                     <span className="text-2xl">🥇</span>
                   ) : index === 1 ? (
@@ -94,28 +104,32 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                   )}
                 </div>
 
-                <div className="flex flex-col">
-                  <span className="text-[#f0eeff] font-bold text-sm truncate max-w-[120px]">
-                    {user.username}
+                <div className="flex flex-col min-w-0 pr-1">
+                  {/* TOP LINE: INTERNATIONAL FULL NAME */}
+                  <span className="text-[#f0eeff] font-black text-xs sm:text-sm truncate max-w-[130px] sm:max-w-[170px] leading-tight">
+                    {formattedFullName}
                   </span>
-                  <span className="text-[10px] font-medium">
+                  {/* BOTTOM LINE: @USERNAME & BADGE */}
+                  <div className="flex items-center space-x-1.5 mt-0.5">
+                    <span className="text-[10px] font-mono text-[#00e5ff] font-bold truncate max-w-[100px]">
+                      {formattedUsername}
+                    </span>
                     {isRealTelegramAvatar ? (
-                      <span className="text-[#00ff7b] flex items-center space-x-0.5">
-                        <span>Verified Legend</span>
-                        <span className="text-[8px]">✓</span>
-                      </span>
+                      <span className="text-[9px] text-[#00ff7b] font-bold shrink-0">✓</span>
                     ) : (
-                      <span className="text-gray-400">Cyber Cadet</span>
+                      <span className="text-[8px] text-gray-400 bg-white/5 px-1 rounded border border-white/10 shrink-0">
+                        CADET
+                      </span>
                     )}
-                  </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="text-right">
-                <p className="text-[#00ff7b] font-black text-sm neon-green-glow">
+              <div className="text-right shrink-0">
+                <p className="text-[#00ff7b] font-black text-xs sm:text-sm neon-green-glow">
                   {user.score.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                 </p>
-                <p className="text-[9px] text-[#f0eeff]/40 font-bold uppercase tracking-tighter">Points</p>
+                <p className="text-[8px] text-[#f0eeff]/40 font-bold uppercase tracking-tighter">Points</p>
               </div>
             </div>
           );
