@@ -121,39 +121,62 @@ const App: React.FC = () => {
   // AUTO SHOW TOKEN LAUNCH POPUP ON WEB ENTRY
   const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(true);
 
-  // REAL-TIME NOTIFICATIONS SYSTEM STATE
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: "notif-launch",
-      type: "launch",
-      title: "🚀 Official Token Launching Today",
-      message: "EggRush Token launches at 14:00 UTC on https://www.ponsfamily.com/launchpad!",
-      time: "Just now",
-      unread: true,
-      actionText: "Open Launchpad",
-      onAction: () => window.open("https://www.ponsfamily.com/launchpad", "_blank"),
-    },
-    {
-      id: "notif-[#1]",
-      type: "reward",
-      title: "🎁 Daily Cyber Streak Available",
-      message: "Claim today's check-in bonus to keep your 7-day streak alive!",
-      time: "10 mins ago",
-      unread: true,
-      actionText: "Claim Streak",
-      onAction: () => setActiveModal("reward"),
-    },
-    {
-      id: "notif-[#2]",
-      type: "cipher",
-      title: "🔐 Daily Morse Cipher Challenge",
-      message: "Decipher today's Morse sequence to earn +2,500 EGG bonus!",
-      time: "1 hr ago",
-      unread: true,
-      actionText: "Solve Cipher",
-      onAction: () => setActiveModal("cipher"),
-    },
-  ]);
+  // REAL-TIME NOTIFICATIONS SYSTEM STATE WITH LOCALSTORAGE PERSISTENCE & DATA SANITIZATION
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
+    const saved = localStorage.getItem("eggrush_notifications");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const now = Date.now();
+          return parsed.map((item, idx) => ({
+            ...item,
+            timestamp:
+              typeof item.timestamp === "number" && !isNaN(item.timestamp) && item.timestamp > 0
+                ? item.timestamp
+                : now - (idx + 1) * 300000,
+          }));
+        }
+      } catch (e) {
+        console.error("Error parsing saved notifications:", e);
+      }
+    }
+    const now = Date.now();
+    return [
+      {
+        id: "notif-launch",
+        type: "launch",
+        title: "🚀 Official Token Launching Today",
+        message: "EggRush Token launches at 14:00 UTC on https://www.ponsfamily.com/launchpad!",
+        timestamp: now - 300000, // 5 mins ago
+        unread: true,
+        actionText: "Open Launchpad",
+      },
+      {
+        id: "notif-[#1]",
+        type: "reward",
+        title: "🎁 Daily Cyber Streak Available",
+        message: "Claim today's check-in bonus to keep your 7-day streak alive!",
+        timestamp: now - 1800000, // 30 mins ago
+        unread: true,
+        actionText: "Claim Streak",
+      },
+      {
+        id: "notif-[#2]",
+        type: "cipher",
+        title: "🔐 Daily Morse Cipher Challenge",
+        message: "Decipher today's Morse sequence to earn +2,500 EGG bonus!",
+        timestamp: now - 7200000, // 2 hrs ago
+        unread: true,
+        actionText: "Solve Cipher",
+      },
+    ];
+  });
+
+  // Persist notifications to localStorage on update
+  useEffect(() => {
+    localStorage.setItem("eggrush_notifications", JSON.stringify(notifications));
+  }, [notifications]);
 
   const [dailyRewardTimeLeft, setDailyRewardTimeLeft] = useState("16:29:18");
   const [dailyCipherTimeLeft, setDailyCipherTimeLeft] = useState("01:29:18");
@@ -337,10 +360,9 @@ const App: React.FC = () => {
                     type: "bot",
                     title: "🤖 Auto Bot Offline Rewards",
                     message: `Mined +${offlineCoins.toLocaleString()} EGG coins while you were offline!`,
-                    time: "Just now",
+                    timestamp: Date.now(),
                     unread: true,
                     actionText: "Claim Bot Coins",
-                    onAction: () => setActiveModal("autobot"),
                   },
                   ...prev,
                 ]);
@@ -686,7 +708,16 @@ const App: React.FC = () => {
       <NotificationsModal
         isOpen={activeModal === "notifications"}
         onClose={() => setActiveModal(null)}
-        notifications={notifications}
+        notifications={notifications.map((n) => ({
+          ...n,
+          onAction: () => {
+            if (n.type === "launch") window.open("https://www.ponsfamily.com/launchpad", "_blank");
+            else if (n.type === "bot") setActiveModal("autobot");
+            else if (n.type === "reward") setActiveModal("reward");
+            else if (n.type === "cipher") setActiveModal("cipher");
+            else if (n.type === "combo") setActiveModal("combo");
+          },
+        }))}
         onClearAll={() => setNotifications([])}
       />
 

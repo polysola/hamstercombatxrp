@@ -5,7 +5,7 @@ export interface NotificationItem {
   type: "bot" | "launch" | "reward" | "cipher" | "combo";
   title: string;
   message: string;
-  time: string;
+  timestamp: number; // Real Unix timestamp in ms
   unread: boolean;
   actionText?: string;
   onAction?: () => void;
@@ -17,6 +17,23 @@ interface NotificationsModalProps {
   notifications: NotificationItem[];
   onClearAll: () => void;
 }
+
+export const getRelativeTimeString = (timestamp: any): string => {
+  let ts = Number(timestamp);
+  if (!ts || isNaN(ts) || ts <= 0) {
+    ts = Date.now();
+  }
+
+  const diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if (diffSec < 10) return "Just now";
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}h ago`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `${diffDay}d ago`;
+};
 
 const NotificationsModal: React.FC<NotificationsModalProps> = ({
   isOpen,
@@ -86,7 +103,9 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center">
                       <h4 className="text-xs font-bold text-white truncate pr-2">{item.title}</h4>
-                      <span className="text-[8px] text-gray-400 font-mono shrink-0">{item.time}</span>
+                      <span className="text-[9px] text-[#00ff7b] font-mono font-bold shrink-0">
+                        {getRelativeTimeString(item.timestamp)}
+                      </span>
                     </div>
 
                     <p className="text-[10px] text-gray-300 mt-1 leading-relaxed">{item.message}</p>
@@ -121,7 +140,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
             <span>📖</span> <span>DETAILED NOTIFICATIONS PROTOCOL GUIDE</span>
           </p>
           <ul className="text-gray-300 space-y-1 text-[10px] sm:text-[11px] list-disc list-inside">
-            <li>Notifications capture <strong>Auto Bot offline rewards</strong>, daily quest reset reminders, and event alerts.</li>
+            <li>Timestamps are dynamically calculated in real-time (e.g. <strong>2m ago, 1h ago</strong>).</li>
             <li>Unread alerts display a glowing red indicator on the <strong>Header Bell 🔔</strong> icon.</li>
             <li>Click <strong>CLEAR ALL ALERTS</strong> to reset your inbox anytime.</li>
           </ul>
