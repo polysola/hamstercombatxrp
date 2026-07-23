@@ -14,11 +14,11 @@ import Info from "./icons/Info";
 import Settings from "./icons/Settings";
 import Friends from "./icons/Friends";
 import RankingIcon from "./icons/RankingIcon";
-import Hamster from "./icons/Hamster";
 import ETHIcon from "./icons/ETHIcon";
 import XIcon from "./icons/XIcon";
 import TelegramIcon from "./icons/TelegramIcon";
 import BookIcon from "./icons/BookIcon";
+import NftIcon from "./icons/NftIcon";
 import HeroReactorRing from "./components/HeroReactorRing";
 import {
   saveUserScore,
@@ -43,6 +43,7 @@ import TokenLaunchModal from "./components/modals/TokenLaunchModal";
 import NotificationsModal, { NotificationItem } from "./components/modals/NotificationsModal";
 import DocsModal from "./components/modals/DocsModal";
 import UserDetailModal, { SelectedRankingUser } from "./components/modals/UserDetailModal";
+import MintNftModal from "./components/modals/MintNftModal";
 
 // TypeScript Definitions
 interface LeaderboardUser {
@@ -91,6 +92,7 @@ type ModalType =
   | "profile"
   | "notifications"
   | "docs"
+  | "mint"
   | null;
 
 const App: React.FC = () => {
@@ -819,6 +821,12 @@ const App: React.FC = () => {
         user={selectedRankingUser}
         onClose={() => setSelectedRankingUser(null)}
       />
+      <MintNftModal
+        isOpen={activeModal === "mint"}
+        onClose={() => setActiveModal(null)}
+        onSuccessMint={handleModalClaim}
+        username={user?.username}
+      />
 
       {isLoading ? (
         <div className="w-full h-screen flex items-center justify-center text-[#f0eeff] z-50 bg-[#060a12]">
@@ -1131,16 +1139,16 @@ const App: React.FC = () => {
               <span className="text-[8px] font-black uppercase mt-1">FRIENDS</span>
             </div>
 
-            {/* CLAIM TAB */}
+            {/* MINT NFT TAB */}
             <div
-              onClick={() => toast.info("🎟️ Airdrop Token Claim Protocol coming soon on Robinhood EVM Mainnet (SOON)!")}
-              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#00ff7b] transition-all relative"
+              onClick={() => setActiveModal("mint")}
+              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#ffe600] transition-all relative group"
             >
-              <span className="absolute -top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-              <Hamster size={18} className="text-gray-400 hover:text-[#00ff7b]" />
-              <div className="flex items-center space-x-1 mt-1">
-                <span className="text-[8px] font-black uppercase">CLAIM</span>
-                <span className="text-[6px] text-[#00ff7b] font-black bg-[#00ff7b]/10 px-1 rounded border border-[#00ff7b]/30">SOON</span>
+              <span className="absolute -top-1 right-1 w-2 h-2 rounded-full bg-[#ffe600] animate-ping"></span>
+              <NftIcon size={18} className="text-[#ffe600] group-hover:scale-110 transition-transform" />
+              <div className="flex items-center space-x-1 mt-0.5">
+                <span className="text-[8px] font-black uppercase text-[#ffe600]">MINT NFT</span>
+                <span className="text-[6px] text-[#ffe600] font-black bg-[#ffe600]/10 px-1 rounded border border-[#ffe600]/30">DEMO</span>
               </div>
             </div>
           </div>
