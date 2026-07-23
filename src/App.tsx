@@ -124,8 +124,8 @@ const App: React.FC = () => {
   // Active Modal State
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
-  // AUTO SHOW TOKEN LAUNCH POPUP ON WEB ENTRY
-  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(true);
+  // AUTO SHOW TOKEN LAUNCH POPUP ON WEB ENTRY (DISABLED)
+  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
 
   // REAL-TIME NOTIFICATIONS SYSTEM STATE WITH LOCALSTORAGE PERSISTENCE & DATA SANITIZATION
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
