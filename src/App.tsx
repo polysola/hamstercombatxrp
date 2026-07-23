@@ -326,9 +326,14 @@ const App: React.FC = () => {
         const tg = (window as any).Telegram?.WebApp;
         if (tg && tg.initDataUnsafe?.user) {
           tg.expand();
+          const tgUser = tg.initDataUnsafe.user;
           const defaultId = Date.now().toString(36).toUpperCase().slice(-5);
-          activeUsername = tg.initDataUnsafe.user.username || `User_${defaultId}`;
-          activePhotoUrl = tg.initDataUnsafe.user.photo_url || undefined;
+          const realName = tgUser.username
+            ? tgUser.username
+            : `${tgUser.first_name || ""} ${tgUser.last_name || ""}`.trim() || `User_${defaultId}`;
+
+          activeUsername = realName;
+          activePhotoUrl = tgUser.photo_url || undefined;
 
           const startapp = tg.initDataUnsafe.start_param;
           if (startapp) {

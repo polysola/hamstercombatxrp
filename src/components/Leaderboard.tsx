@@ -98,7 +98,16 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                   <span className="text-[#f0eeff] font-bold text-sm truncate max-w-[120px]">
                     {user.username}
                   </span>
-                  <span className="text-[10px] text-[#00ff7b]/80 font-medium">EggRush Master</span>
+                  <span className="text-[10px] font-medium">
+                    {isRealTelegramAvatar ? (
+                      <span className="text-[#00ff7b] flex items-center space-x-0.5">
+                        <span>Verified Legend</span>
+                        <span className="text-[8px]">✓</span>
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">Cyber Cadet</span>
+                    )}
+                  </span>
                 </div>
               </div>
 
