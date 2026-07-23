@@ -313,30 +313,30 @@ const App: React.FC = () => {
     const initializeApp = async () => {
       try {
         setIsLoading(true);
+        let guestName = localStorage.getItem("guest_name");
+        if (!guestName) {
+          const timestampId = Date.now().toString(36).toUpperCase().slice(-5);
+          guestName = `Guest_${timestampId}`;
+          localStorage.setItem("guest_name", guestName);
+        }
+
+        let activeUsername = guestName;
+        let activePhotoUrl: string | undefined = undefined;
+
         const tg = (window as any).Telegram?.WebApp;
-
-        let activeUsername = "Guest_89LPR";
-        let activePhotoUrl = logo;
-
         if (tg && tg.initDataUnsafe?.user) {
           tg.expand();
-          activeUsername = tg.initDataUnsafe.user.username || "Guest_89LPR";
-          activePhotoUrl = tg.initDataUnsafe.user.photo_url || logo;
+          const defaultId = Date.now().toString(36).toUpperCase().slice(-5);
+          activeUsername = tg.initDataUnsafe.user.username || `User_${defaultId}`;
+          activePhotoUrl = tg.initDataUnsafe.user.photo_url || undefined;
 
           const startapp = tg.initDataUnsafe.start_param;
           if (startapp) {
             await setReferrer(activeUsername, startapp);
           }
-        } else {
-          let guestName = localStorage.getItem("guest_name");
-          if (!guestName) {
-            guestName = "Guest_89LPR";
-            localStorage.setItem("guest_name", guestName);
-          }
-          activeUsername = guestName;
         }
 
-        setUser({ username: activeUsername, photoUrl: activePhotoUrl });
+        setUser({ username: activeUsername, photoUrl: activePhotoUrl || "" });
 
         // Load Firestore User Score & Real-time Offline Mining Profit
         try {

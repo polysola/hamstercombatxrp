@@ -45,9 +45,13 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
       </div>
       <div className="space-y-3">
         {users.map((user, index) => {
-          // Primary Avatar from Telegram or High-Res Dicebear PNG API, with onError fallback to local logo
+          const isRealTelegramAvatar =
+            user.photoUrl &&
+            user.photoUrl.startsWith("http") &&
+            !user.photoUrl.includes("logo");
+
           const apiAvatar = `https://api.dicebear.com/7.x/bottts/png?seed=${encodeURIComponent(user.username)}&size=96`;
-          const avatarSrc = user.photoUrl || apiAvatar;
+          const avatarSrc = isRealTelegramAvatar ? user.photoUrl! : apiAvatar;
 
           return (
             <div
