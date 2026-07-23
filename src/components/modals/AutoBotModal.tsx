@@ -22,7 +22,7 @@ const AutoBotModal: React.FC<AutoBotModalProps> = ({
       return;
     }
     onCollect();
-    toast.success(`🤖 Claimed +${botEarnings.toLocaleString()} Real-time Offline Mining ETH Coins!`);
+    toast.success(`🤖 Claimed +${botEarnings.toLocaleString()} Real-time Offline Mining EGG Coins!`);
     onClose();
   };
 
@@ -56,7 +56,7 @@ const AutoBotModal: React.FC<AutoBotModalProps> = ({
           </div>
           <div className="flex justify-center items-center space-x-2 text-[10px] text-gray-400">
             <span className="w-2 h-2 rounded-full bg-[#00ff7b] animate-ping"></span>
-            <span>Mining Rate: +1,200 ETH Coins / Hour</span>
+            <span>Mining Rate: +1,200 EGG Coins / Hour</span>
           </div>
         </div>
 
@@ -76,11 +76,10 @@ const AutoBotModal: React.FC<AutoBotModalProps> = ({
         <button
           onClick={handleCollectEarnings}
           disabled={botEarnings <= 0}
-          className={`w-full py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all ${
-            botEarnings <= 0
+          className={`w-full py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all ${botEarnings <= 0
               ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10"
               : "bg-gradient-to-r from-[#00ff7b] via-[#31ff00] to-[#00e5ff] text-black shadow-[0_0_25px_#00ff7b] hover:scale-[1.02]"
-          }`}
+            }`}
         >
           {botEarnings <= 0 ? "Mining In Progress..." : "Claim Offline Mining Profit"}
         </button>

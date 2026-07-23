@@ -8,6 +8,7 @@ import {
   egg,
   hatchedEgg,
   bg,
+  robinhood,
 } from "./images";
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
@@ -850,8 +851,14 @@ const App: React.FC = () => {
                     <span className="text-[10px] text-gray-400">›</span>
                   </div>
                   <p className="text-[9px] text-gray-400 font-bold mt-1">Turbo x2</p>
-                  <div className="bg-[#ffe600]/10 border border-[#ffe600]/30 text-[#ffe600] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 text-center">
-                    ⏱ {isBoostActive ? `${boostTimeLeft}s` : "23:45"}
+                  <div
+                    className={`text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 text-center transition-all ${
+                      isBoostActive
+                        ? "bg-[#ffe600] text-black shadow-[0_0_10px_#ffe600] animate-pulse"
+                        : "bg-[#ffe600]/10 border border-[#ffe600]/30 text-[#ffe600]"
+                    }`}
+                  >
+                    {isBoostActive ? `⏱ ${boostTimeLeft}s` : "⚡ READY"}
                   </div>
                 </div>
 
@@ -891,54 +898,104 @@ const App: React.FC = () => {
                     <span className="text-xs font-black text-[#ab00ff]">AUTO BOT</span>
                     <span className="text-[10px] text-gray-400">›</span>
                   </div>
-                  <p className="text-[9px] text-gray-400 font-bold mt-1">Offline Collect</p>
-                  <div className="bg-[#ab00ff]/10 border border-[#ab00ff]/30 text-[#ab00ff] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 text-center">
-                    ⏱ 6h 30m
+                  <p className="text-[9px] text-gray-400 font-bold mt-1">
+                    {botEarnings > 0 ? "Mining Ready" : "Offline Mining"}
+                  </p>
+                  <div
+                    className={`text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 text-center transition-all ${
+                      botEarnings > 0
+                        ? "bg-[#ab00ff] text-white shadow-[0_0_12px_#ab00ff] animate-bounce"
+                        : "bg-[#ab00ff]/10 border border-[#ab00ff]/30 text-[#ab00ff]"
+                    }`}
+                  >
+                    {botEarnings > 0 ? `🔥 +${botEarnings.toLocaleString()}` : "🤖 ACTIVE"}
                   </div>
                 </div>
               </div>
 
-              {/* TẦNG 4: DAILY QUEST CARDS (REWARD - CIPHER - COMBO WITH NEXT IN & ARROW) */}
+              {/* TẦNG 4: DAILY QUEST CARDS (REWARD - CIPHER - COMBO WITH REAL-TIME DYNAMIC STATUS) */}
               <div className="grid grid-cols-3 gap-2">
                 {/* DAILY REWARD */}
                 <div
                   onClick={() => setActiveModal("reward")}
-                  className="bg-[#0a1424] hover:bg-[#00ff7b]/10 p-2.5 rounded-2xl border border-[#00ff7b]/40 cursor-pointer transition-all flex flex-col items-center justify-between relative group"
+                  className={`bg-[#0a1424] hover:bg-[#00ff7b]/10 p-2.5 rounded-2xl border cursor-pointer transition-all flex flex-col items-center justify-between relative group ${
+                    localStorage.getItem(`reward_claimed_date_${user?.username}`) === new Date().toISOString().split("T")[0]
+                      ? "border-[#00ff7b]/30"
+                      : "border-[#00ff7b] shadow-[0_0_15px_rgba(0,255,123,0.3)] animate-pulse"
+                  }`}
                 >
                   <span className="absolute top-2 right-2 text-gray-400 text-[10px]">›</span>
                   <span className="text-2xl mb-1">🎁</span>
                   <p className="text-[9px] font-black text-[#00ff7b] uppercase">DAILY REWARD</p>
-                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">Next in</p>
-                  <div className="bg-[#00ff7b]/10 border border-[#00ff7b]/30 text-[#00ff7b] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center">
-                    {dailyRewardTimeLeft}
+                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">
+                    {localStorage.getItem(`reward_claimed_date_${user?.username}`) === new Date().toISOString().split("T")[0] ? "Next in" : "Status"}
+                  </p>
+                  <div
+                    className={`text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center ${
+                      localStorage.getItem(`reward_claimed_date_${user?.username}`) === new Date().toISOString().split("T")[0]
+                        ? "bg-[#00ff7b]/10 border border-[#00ff7b]/30 text-[#00ff7b]"
+                        : "bg-[#00ff7b] text-black shadow-[0_0_10px_#00ff7b]"
+                    }`}
+                  >
+                    {localStorage.getItem(`reward_claimed_date_${user?.username}`) === new Date().toISOString().split("T")[0]
+                      ? dailyRewardTimeLeft
+                      : "🎁 CLAIM NOW"}
                   </div>
                 </div>
 
                 {/* CIPHER */}
                 <div
                   onClick={() => setActiveModal("cipher")}
-                  className="bg-[#0a1424] hover:bg-[#00e5ff]/10 p-2.5 rounded-2xl border border-[#00e5ff]/40 cursor-pointer transition-all flex flex-col items-center justify-between relative group"
+                  className={`bg-[#0a1424] hover:bg-[#00e5ff]/10 p-2.5 rounded-2xl border cursor-pointer transition-all flex flex-col items-center justify-between relative group ${
+                    localStorage.getItem(`cipher_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true"
+                      ? "border-[#00e5ff]/30"
+                      : "border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.3)] animate-pulse"
+                  }`}
                 >
                   <span className="absolute top-2 right-2 text-gray-400 text-[10px]">›</span>
                   <span className="text-2xl mb-1">🔐</span>
                   <p className="text-[9px] font-black text-[#00e5ff] uppercase">CIPHER</p>
-                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">Next in</p>
-                  <div className="bg-[#00e5ff]/10 border border-[#00e5ff]/30 text-[#00e5ff] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center">
-                    {dailyCipherTimeLeft}
+                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">
+                    {localStorage.getItem(`cipher_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true" ? "Next in" : "Status"}
+                  </p>
+                  <div
+                    className={`text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center ${
+                      localStorage.getItem(`cipher_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true"
+                        ? "bg-[#00e5ff]/10 border border-[#00e5ff]/30 text-[#00e5ff]"
+                        : "bg-[#00e5ff] text-black shadow-[0_0_10px_#00e5ff]"
+                    }`}
+                  >
+                    {localStorage.getItem(`cipher_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true"
+                      ? dailyCipherTimeLeft
+                      : "🔐 READY (+2.5K)"}
                   </div>
                 </div>
 
                 {/* COMBO */}
                 <div
                   onClick={() => setActiveModal("combo")}
-                  className="bg-[#0a1424] hover:bg-[#ffe600]/10 p-2.5 rounded-2xl border border-[#ffe600]/40 cursor-pointer transition-all flex flex-col items-center justify-between relative group"
+                  className={`bg-[#0a1424] hover:bg-[#ffe600]/10 p-2.5 rounded-2xl border cursor-pointer transition-all flex flex-col items-center justify-between relative group ${
+                    localStorage.getItem(`combo_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true"
+                      ? "border-[#ffe600]/30"
+                      : "border-[#ffe600] shadow-[0_0_15px_rgba(255,230,0,0.3)] animate-pulse"
+                  }`}
                 >
                   <span className="absolute top-2 right-2 text-gray-400 text-[10px]">›</span>
                   <span className="text-2xl mb-1">🎟️</span>
                   <p className="text-[9px] font-black text-[#ffe600] uppercase">COMBO</p>
-                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">Next in</p>
-                  <div className="bg-[#ffe600]/10 border border-[#ffe600]/30 text-[#ffe600] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center">
-                    {dailyComboTimeLeft}
+                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">
+                    {localStorage.getItem(`combo_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true" ? "Next in" : "Status"}
+                  </p>
+                  <div
+                    className={`text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center ${
+                      localStorage.getItem(`combo_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true"
+                        ? "bg-[#ffe600]/10 border border-[#ffe600]/30 text-[#ffe600]"
+                        : "bg-[#ffe600] text-black shadow-[0_0_10px_#ffe600]"
+                    }`}
+                  >
+                    {localStorage.getItem(`combo_claimed_${user?.username}_${new Date().toISOString().split("T")[0]}`) === "true"
+                      ? dailyComboTimeLeft
+                      : "🎟️ READY (+5.0K)"}
                   </div>
                 </div>
               </div>
@@ -988,7 +1045,7 @@ const App: React.FC = () => {
               }`}
             >
               <div className="w-8 h-8 rounded-full bg-[#00ff7b]/20 border border-[#00ff7b] flex items-center justify-center shadow-[0_0_10px_#00ff7b]">
-                <ETHIcon size={16} />
+                <img src={robinhood} alt="Robinhood" className="w-5 h-5 object-contain" />
               </div>
               <span className="text-[8px] font-black uppercase mt-0.5">MINE</span>
               {activeTab === "main" && <div className="w-1 h-1 bg-[#00ff7b] rounded-full mt-0.5 shadow-[0_0_6px_#00ff7b]"></div>}
