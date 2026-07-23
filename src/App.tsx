@@ -8,7 +8,6 @@ import {
   egg,
   hatchedEgg,
   bg,
-  robinhood,
 } from "./images";
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
@@ -128,7 +127,8 @@ const App: React.FC = () => {
   } = useReferral(user?.username);
   const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
 
-  const [eggHealth, setEggHealth] = useState(92.7);
+  // EGG HEALTH INITIALIZED AT 100.0%
+  const [eggHealth, setEggHealth] = useState(100.0);
   const [eggClicks, setEggClicks] = useState(0);
   const [isHatching, setIsHatching] = useState(false);
   const [crackEffects, setCrackEffects] = useState<CrackEffect[]>([]);
@@ -245,12 +245,12 @@ const App: React.FC = () => {
         const tg = (window as any).Telegram?.WebApp;
 
         let activeUsername = "Guest_89LPR";
-        let activePhotoUrl = robinhood;
+        let activePhotoUrl = logo;
 
         if (tg && tg.initDataUnsafe?.user) {
           tg.expand();
           activeUsername = tg.initDataUnsafe.user.username || "Guest_89LPR";
-          activePhotoUrl = tg.initDataUnsafe.user.photo_url || robinhood;
+          activePhotoUrl = tg.initDataUnsafe.user.photo_url || logo;
 
           const startapp = tg.initDataUnsafe.start_param;
           if (startapp) {
@@ -402,7 +402,7 @@ const App: React.FC = () => {
       setBonusPoints({ amount: HATCH_BONUS, visible: true, x: rect.width / 2, y: rect.height / 2 });
 
       setTimeout(() => {
-        setEggHealth(92.7);
+        setEggHealth(100.0);
         setEggClicks(0);
         setIsHatching(false);
         setCrackEffects([]);
@@ -441,8 +441,8 @@ const App: React.FC = () => {
     ? `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}`
     : "";
 
-  // Guaranteed crisp Avatar image
-  const avatarSrc = user?.photoUrl && user.photoUrl !== logo ? user.photoUrl : robinhood;
+  // Guaranteed crisp logo image
+  const avatarSrc = user?.photoUrl || logo;
 
   const renderHeader = () => (
     <div className="space-y-3 z-10">
@@ -456,7 +456,7 @@ const App: React.FC = () => {
             title="Click to view Web3 Profile & Transaction History"
           >
             <div className="p-0.5 rounded-full bg-gradient-to-r from-[#00ff7b] to-[#00e5ff] shadow-[0_0_12px_rgba(0,255,123,0.6)] group-hover:shadow-[0_0_20px_#00ff7b]">
-              <img src={avatarSrc} alt="Avatar" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#060a12] object-contain bg-[#00ff7b]/10 p-0.5" />
+              <img src={avatarSrc} alt="Avatar" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#060a12] object-cover bg-[#00ff7b]/10" />
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#00ff7b] border-2 border-[#060a12]"></div>
           </div>
@@ -551,7 +551,7 @@ const App: React.FC = () => {
 
           {/* Profit Card */}
           <div onClick={() => setActiveModal("autobot")} className="bg-[#0a1424] p-1.5 sm:p-2 rounded-xl border border-white/10 flex items-center space-x-1.5 cursor-pointer hover:border-[#00ff7b]/50 transition-all shrink-0">
-            <img src={robinhood} alt="Robinhood" className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-lg border border-[#ffe600]/40 p-0.5 bg-[#ffe600]/10" />
+            <img src={logo} alt="Logo" className="w-5 h-5 sm:w-6 sm:h-6 object-cover rounded-lg border border-[#ffe600]/40 bg-[#ffe600]/10" />
             <div className="text-right">
               <p className="text-[6px] sm:text-[7px] text-gray-400 font-bold uppercase tracking-wider">PROFIT / HOUR</p>
               <p className="text-[10px] sm:text-xs font-black text-[#ffe600] yellow-glow">{formatProfitPerHour(profitPerHour)} <Info size={8} className="inline text-gray-400" /></p>
@@ -824,7 +824,7 @@ const App: React.FC = () => {
               <div className="px-4 z-10 pt-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="p-1 rounded-full bg-gradient-to-tr from-[#00ff7b] to-[#00e5ff] shadow-[0_0_12px_rgba(0,255,123,0.4)]">
-                    <img src={avatarSrc} alt="Avatar" className="w-10 h-10 rounded-full object-contain border-2 border-[#060a12] bg-[#00ff7b]/10 p-0.5" />
+                    <img src={avatarSrc} alt="Avatar" className="w-10 h-10 rounded-full object-cover border-2 border-[#060a12] bg-[#00ff7b]/10 p-0.5" />
                   </div>
                   <div>
                     <p className="text-base font-black text-[#f0eeff] tracking-tight leading-none">{user?.username || "Guest_89LPR"}</p>
@@ -914,7 +914,7 @@ const App: React.FC = () => {
       )}
 
       {clicks.map((click) => (
-        <div key={click.id} className="fixed text-4xl sm:text-5xl font-[#00ff7b] pointer-events-none neon-green-glow z-[100] italic" style={{ top: `${click.y - 40}px`, left: `${click.x - 20}px`, animation: `float-up-fast 1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards` }}>+{click.amount}</div>
+        <div key={click.id} className="fixed text-4xl sm:text-5xl font-black text-[#00ff7b] pointer-events-none neon-green-glow z-[100] italic" style={{ top: `${click.y - 40}px`, left: `${click.x - 20}px`, animation: `float-up-fast 1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards` }}>+{click.amount}</div>
       ))}
     </div>
   );

@@ -1,7 +1,7 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { ReferralUser } from "../types/user";
-import { robinhood } from "../images";
+import { logo } from "../images";
 
 interface ReferralProps {
   users?: ReferralUser[];
@@ -43,7 +43,7 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
           <div className="absolute inset-0 bg-gradient-to-br from-[#00ff7b]/10 to-transparent"></div>
           <div className="bg-[#00ff7b]/10 w-10 h-10 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-[#00ff7b]/30">
             <svg className="w-5 h-5 text-[#00ff7b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H7m10 0v-2c0-.656.126-1.283.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </div>
           <p className="text-[10px] text-[#f0eeff]/50 font-bold uppercase tracking-widest mb-1">Total Referrals</p>
@@ -92,12 +92,12 @@ const Referral: React.FC<ReferralProps> = ({ users = [], currentUser }) => {
         <div className="space-y-3">
           {users.slice(1).length > 0 ? (
             users.slice(1).map((user) => {
-              const avatarSrc = user.photoUrl && !user.photoUrl.includes("logo.png") ? user.photoUrl : robinhood;
+              const avatarSrc = user.photoUrl || logo;
               return (
                 <div key={user.username} className="glass-card p-4 rounded-2xl flex items-center justify-between group hover:bg-white/5 transition-all border-[rgba(155,0,255,0.3)]">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#070510] to-[#12092b] border border-[#00ff7b]/30 flex items-center justify-center overflow-hidden p-0.5">
-                      <img src={avatarSrc} alt={user.username} className="w-full h-full object-contain rounded-full" />
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#070510] to-[#12092b] border border-[#00ff7b]/30 flex items-center justify-center overflow-hidden">
+                      <img src={avatarSrc} alt={user.username} className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-[#f0eeff]">{user.username}</p>

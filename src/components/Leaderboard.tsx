@@ -1,5 +1,5 @@
 import React from "react";
-import { robinhood } from "../images";
+import { logo } from "../images";
 
 interface LeaderboardUser {
   username: string;
@@ -36,7 +36,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
   }
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4 pb-24 font-orbitron">
       <div className="flex items-center justify-between mb-2 px-2">
         <h3 className="text-xl font-black text-[#f0eeff] tracking-tight neon-green-glow">Hall of Fame</h3>
         <div className="bg-[#00ff7b]/10 px-3 py-1 rounded-full border border-[#00ff7b]/30">
@@ -46,7 +46,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
 
       <div className="space-y-3">
         {users.map((user, index) => {
-          const avatarSrc = user.photoUrl && !user.photoUrl.includes("logo.png") ? user.photoUrl : robinhood;
+          const avatarSrc = user.photoUrl || logo;
           return (
             <div
               key={user.username}
@@ -74,7 +74,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                     <img
                       src={avatarSrc}
                       alt={user.username}
-                      className="w-10 h-10 rounded-full object-contain bg-[#070510] p-0.5"
+                      className="w-10 h-10 rounded-full object-cover bg-[#070510]"
                     />
                   </div>
                   {index < 3 && (
@@ -86,7 +86,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                   <span className="text-[#f0eeff] font-bold text-sm truncate max-w-[120px]">
                     {user.username}
                   </span>
-                  <span className="text-[10px] text-[#00ff7b]/80 font-medium">Robinhood Master</span>
+                  <span className="text-[10px] text-[#00ff7b]/80 font-medium">EggRush Master</span>
                 </div>
               </div>
 
