@@ -38,6 +38,8 @@ import DailyComboModal from "./components/modals/DailyComboModal";
 import BoostModal from "./components/modals/BoostModal";
 import AutoBotModal from "./components/modals/AutoBotModal";
 import UserProfileModal from "./components/modals/UserProfileModal";
+import TokenLaunchModal from "./components/modals/TokenLaunchModal";
+import NotificationsModal, { NotificationItem } from "./components/modals/NotificationsModal";
 
 // TypeScript Definitions
 interface LeaderboardUser {
@@ -75,7 +77,17 @@ interface HammerAnimation {
   y: number;
 }
 
-type ModalType = "wallet" | "settings" | "reward" | "cipher" | "combo" | "boost" | "autobot" | "profile" | null;
+type ModalType =
+  | "wallet"
+  | "settings"
+  | "reward"
+  | "cipher"
+  | "combo"
+  | "boost"
+  | "autobot"
+  | "profile"
+  | "notifications"
+  | null;
 
 const App: React.FC = () => {
   const levelNames = [
@@ -105,6 +117,43 @@ const App: React.FC = () => {
 
   // Active Modal State
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+
+  // AUTO SHOW TOKEN LAUNCH POPUP ON WEB ENTRY
+  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(true);
+
+  // REAL-TIME NOTIFICATIONS SYSTEM STATE
+  const [notifications, setNotifications] = useState<NotificationItem[]>([
+    {
+      id: "notif-launch",
+      type: "launch",
+      title: "🚀 Official Token Launching Today",
+      message: "EggRush Token launches at 14:00 UTC on https://www.ponsfamily.com/launchpad!",
+      time: "Just now",
+      unread: true,
+      actionText: "Open Launchpad",
+      onAction: () => window.open("https://www.ponsfamily.com/launchpad", "_blank"),
+    },
+    {
+      id: "notif-[#1]",
+      type: "reward",
+      title: "🎁 Daily Cyber Streak Available",
+      message: "Claim today's check-in bonus to keep your 7-day streak alive!",
+      time: "10 mins ago",
+      unread: true,
+      actionText: "Claim Streak",
+      onAction: () => setActiveModal("reward"),
+    },
+    {
+      id: "notif-[#2]",
+      type: "cipher",
+      title: "🔐 Daily Morse Cipher Challenge",
+      message: "Decipher today's Morse sequence to earn +2,500 EGG bonus!",
+      time: "1 hr ago",
+      unread: true,
+      actionText: "Solve Cipher",
+      onAction: () => setActiveModal("cipher"),
+    },
+  ]);
 
   const [dailyRewardTimeLeft, setDailyRewardTimeLeft] = useState("16:29:18");
   const [dailyCipherTimeLeft, setDailyCipherTimeLeft] = useState("01:29:18");
@@ -210,7 +259,7 @@ const App: React.FC = () => {
   };
 
   const handleSwapClick = () => {
-    toast.info("🔄 EggRush ETH Swap Protocol coming soon in V2!");
+    toast.info("🔄 EggRush EGG Swap Protocol coming soon in V2!");
   };
 
   // Energy Restoration Timer - Exact +3 Energy per second
@@ -280,7 +329,21 @@ const App: React.FC = () => {
               if (offlineSecs > 10) {
                 const offlineCoins = Math.floor(offlineSecs * (profitPerHour / 3600));
                 setBotEarnings(offlineCoins);
-                toast.info(`🤖 Auto Bot mined +${offlineCoins.toLocaleString()} ETH coins while you were offline!`);
+
+                // Add to Notifications Center instead of intrusive Toast!
+                setNotifications((prev) => [
+                  {
+                    id: `bot-offline-${Date.now()}`,
+                    type: "bot",
+                    title: "🤖 Auto Bot Offline Rewards",
+                    message: `Mined +${offlineCoins.toLocaleString()} EGG coins while you were offline!`,
+                    time: "Just now",
+                    unread: true,
+                    actionText: "Claim Bot Coins",
+                    onAction: () => setActiveModal("autobot"),
+                  },
+                  ...prev,
+                ]);
               }
             }
           } else {
@@ -444,131 +507,157 @@ const App: React.FC = () => {
   // Guaranteed crisp logo image
   const avatarSrc = user?.photoUrl || logo;
 
+  // Unread Notifications Count
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const handleOpenNotifications = () => {
+    setActiveModal("notifications");
+    // Mark notifications as read upon opening
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  };
+
   const renderHeader = () => (
-    <div className="space-y-3 z-10">
-      {/* Top Section: Avatar + Name + Wallet + X + Telegram + Settings + Profit Card */}
-      <div className="flex items-start justify-between gap-1 overflow-hidden">
-        {/* Left Side: Avatar, Name, Badge, XP Bar WITH CLICKABLE AVATAR FOR USER PROFILE MODAL */}
-        <div className="flex items-center space-x-2 shrink-0">
+    <div className="space-y-2 z-10 w-full">
+      {/* 1. TOP ROW: User Profile (Left) & Web3 Action Icons + Wallet (Right) */}
+      <div className="flex items-center justify-between gap-1.5">
+        {/* Left Side: Avatar, Name & Level Badge */}
+        <div className="flex items-center space-x-2 min-w-0">
           <div
             onClick={() => setActiveModal("profile")}
             className="relative shrink-0 cursor-pointer group transition-transform hover:scale-105"
             title="Click to view Web3 Profile & Transaction History"
           >
-            <div className="p-0.5 rounded-full bg-gradient-to-r from-[#00ff7b] to-[#00e5ff] shadow-[0_0_12px_rgba(0,255,123,0.6)] group-hover:shadow-[0_0_20px_#00ff7b]">
+            <div className="p-0.5 rounded-full bg-gradient-to-r from-[#00ff7b] to-[#00e5ff] shadow-[0_0_10px_rgba(0,255,123,0.5)]">
               <img src={avatarSrc} alt="Avatar" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#060a12] object-cover bg-[#00ff7b]/10" />
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#00ff7b] border-2 border-[#060a12]"></div>
           </div>
           <div className="shrink-0 cursor-pointer" onClick={() => setActiveModal("profile")}>
-            <div className="flex items-center space-x-1">
-              <p className="text-xs sm:text-sm font-black text-white tracking-tight truncate max-w-[85px] sm:max-w-[120px]">{user?.username || "Guest_89LPR"}</p>
-            </div>
+            <p className="text-xs sm:text-sm font-black text-white tracking-tight truncate max-w-[90px] sm:max-w-[130px] leading-tight">{user?.username || "Guest_89LPR"}</p>
             <div className="flex items-center space-x-1 mt-0.5">
-              <span className="text-[10px]">🛡️</span>
+              <span className="text-[9px]">🛡️</span>
               <span className="text-[9px] sm:text-[10px] font-black text-[#ff8800] uppercase tracking-wider">{levelNames[levelIndex]}</span>
-            </div>
-            {/* Level XP Bar */}
-            <div className="w-28 sm:w-36 mt-1">
-              <div className="flex justify-between items-center text-[8px] font-bold mb-0.5">
-                <span className="text-[#00ff7b] font-black">Lv {levelIndex + 1}</span>
-              </div>
-              <div className="h-1.5 w-full bg-[#060a12] rounded-full overflow-hidden p-[1px] border border-[#00ff7b]/30">
-                <div
-                  className="h-full bg-gradient-to-r from-[#00ff7b] via-[#31ff00] to-[#00e5ff] rounded-full"
-                  style={{
-                    width: `${
-                      levelIndex >= levelNames.length - 1
-                        ? 100
-                        : Math.min(
-                            ((points - levelMinPoints[levelIndex]) /
-                              (levelMinPoints[levelIndex + 1] - levelMinPoints[levelIndex])) *
-                              100,
-                            100
-                          )
-                    }%`,
-                  }}
-                ></div>
-              </div>
-              <div className="text-[7px] sm:text-[8px] font-bold text-gray-400 text-right mt-0.5">
-                {Math.floor(points).toLocaleString()} / {levelMinPoints[levelIndex + 1] ? levelMinPoints[levelIndex + 1].toLocaleString() : "1000"} XP
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Dynamic Wallet Button, X, Telegram, Settings, Profit/Hour */}
-        <div className="flex flex-col items-end space-y-1.5 shrink-0 ml-1">
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={() => setActiveModal("wallet")}
-              className={`flex items-center space-x-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl bg-[#0a1424] border transition-all text-[10px] sm:text-xs text-white font-bold shrink-0 ${
-                isWalletConnected
-                  ? "border-[#00ff7b] shadow-[0_0_12px_rgba(0,255,123,0.3)]"
-                  : "border-[#00e5ff]/40 hover:border-[#00e5ff] shadow-[0_0_12px_rgba(0,229,255,0.2)]"
-              }`}
-            >
-              {isWalletConnected ? (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00ff7b] animate-ping"></span>
-                  <span className="font-mono text-[#00ff7b] text-[10px] sm:text-[11px]">{truncatedWallet}</span>
-                </>
-              ) : (
-                <>
-                  <span>💳</span>
-                  <span>Connect</span>
-                </>
-              )}
-              <span className="text-gray-400 text-[9px]">›</span>
-            </button>
+        {/* Right Side: Wallet Button & Action Icons (Bell, X, Telegram, Settings) */}
+        <div className="flex items-center space-x-1 shrink-0">
+          {/* Wallet Button */}
+          <button
+            onClick={() => setActiveModal("wallet")}
+            className={`flex items-center space-x-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl bg-[#0a1424] border transition-all text-[10px] sm:text-xs text-white font-bold shrink-0 ${
+              isWalletConnected
+                ? "border-[#00ff7b] shadow-[0_0_10px_rgba(0,255,123,0.3)]"
+                : "border-[#00e5ff]/40 hover:border-[#00e5ff]"
+            }`}
+          >
+            {isWalletConnected ? (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00ff7b] animate-ping"></span>
+                <span className="font-mono text-[#00ff7b] text-[10px] sm:text-[11px]">{truncatedWallet}</span>
+              </>
+            ) : (
+              <>
+                <span>💳</span>
+                <span className="hidden sm:inline">Connect</span>
+              </>
+            )}
+            <span className="text-gray-400 text-[9px]">›</span>
+          </button>
 
-            {/* X / Twitter Social Button */}
-            <button
-              onClick={() => window.open("https://x.com/EggRushRH", "_blank")}
-              className="p-1 sm:p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00ff7b]/20 hover:scale-105 transition-all border border-[#00ff7b]/40 text-[#00ff7b] shadow-[0_0_10px_rgba(0,255,123,0.2)] shrink-0"
-              title="Follow EggRush on X"
-            >
-              <XIcon size={14} />
-            </button>
+          {/* CYBER NOTIFICATION BELL BUTTON 🔔 */}
+          <button
+            onClick={handleOpenNotifications}
+            className="p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00ff7b]/20 hover:scale-105 transition-all border border-[#00ff7b]/40 text-[#00ff7b] shrink-0 relative"
+            title="System Notifications Center"
+          >
+            <span className="text-xs sm:text-sm leading-none block">🔔</span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-[#060a12] animate-ping"></span>
+            )}
+          </button>
 
-            {/* Telegram Social Button */}
-            <button
-              onClick={() => window.open("https://t.me/EggRush_RobinHood", "_blank")}
-              className="p-1 sm:p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00e5ff]/20 hover:scale-105 transition-all border border-[#00e5ff]/40 text-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.2)] shrink-0"
-              title="Join Telegram Community"
-            >
-              <TelegramIcon size={14} />
-            </button>
+          {/* X / Twitter Social Button */}
+          <button
+            onClick={() => window.open("https://x.com/EggRushRH", "_blank")}
+            className="p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00ff7b]/20 hover:scale-105 transition-all border border-[#00ff7b]/40 text-[#00ff7b] shrink-0"
+            title="Follow EggRush on X"
+          >
+            <XIcon size={13} />
+          </button>
 
-            {/* Settings Button */}
-            <button
-              onClick={() => setActiveModal("settings")}
-              className="p-1 sm:p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00ff7b]/15 transition-all border border-[#00ff7b]/30 shrink-0"
-            >
-              <Settings size={14} className="text-[#00ff7b]" />
-            </button>
+          {/* Telegram Social Button */}
+          <button
+            onClick={() => window.open("https://t.me/EggRush_RobinHood", "_blank")}
+            className="p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00e5ff]/20 hover:scale-105 transition-all border border-[#00e5ff]/40 text-[#00e5ff] shrink-0"
+            title="Join Telegram Community"
+          >
+            <TelegramIcon size={13} />
+          </button>
+
+          {/* Settings Button */}
+          <button
+            onClick={() => setActiveModal("settings")}
+            className="p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00ff7b]/15 transition-all border border-[#00ff7b]/30 shrink-0"
+            title="Settings"
+          >
+            <Settings size={13} className="text-[#00ff7b]" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. SECOND ROW: Level XP Progress Bar (Left) & Profit Card (Right) */}
+      <div className="flex items-center justify-between gap-2 pt-0.5">
+        {/* Left Side: Level XP Progress Bar */}
+        <div className="flex-1 min-w-0 pr-1">
+          <div className="flex justify-between items-center text-[9px] font-bold mb-0.5">
+            <span className="text-[#00ff7b] font-black">Lv {levelIndex + 1} Progress</span>
+            <span className="text-[8px] text-gray-400 font-mono">
+              {Math.floor(points).toLocaleString()} / {levelMinPoints[levelIndex + 1] ? levelMinPoints[levelIndex + 1].toLocaleString() : "1000"} XP
+            </span>
           </div>
+          <div className="h-1.5 w-full bg-[#060a12] rounded-full overflow-hidden p-[1px] border border-[#00ff7b]/30">
+            <div
+              className="h-full bg-gradient-to-r from-[#00ff7b] via-[#31ff00] to-[#00e5ff] rounded-full transition-all duration-300"
+              style={{
+                width: `${
+                  levelIndex >= levelNames.length - 1
+                    ? 100
+                    : Math.min(
+                        ((points - levelMinPoints[levelIndex]) /
+                          (levelMinPoints[levelIndex + 1] - levelMinPoints[levelIndex])) *
+                          100,
+                        100
+                      )
+                }%`,
+              }}
+            ></div>
+          </div>
+        </div>
 
-          {/* Profit Card */}
-          <div onClick={() => setActiveModal("autobot")} className="bg-[#0a1424] p-1.5 sm:p-2 rounded-xl border border-white/10 flex items-center space-x-1.5 cursor-pointer hover:border-[#00ff7b]/50 transition-all shrink-0">
-            <img src={logo} alt="Logo" className="w-5 h-5 sm:w-6 sm:h-6 object-cover rounded-lg border border-[#ffe600]/40 bg-[#ffe600]/10" />
-            <div className="text-right">
-              <p className="text-[6px] sm:text-[7px] text-gray-400 font-bold uppercase tracking-wider">PROFIT / HOUR</p>
-              <p className="text-[10px] sm:text-xs font-black text-[#ffe600] yellow-glow">{formatProfitPerHour(profitPerHour)} <Info size={8} className="inline text-gray-400" /></p>
-            </div>
+        {/* Right Side: Profit / Hour Card */}
+        <div
+          onClick={() => setActiveModal("autobot")}
+          className="bg-[#0a1424] px-2 py-1 rounded-xl border border-[#ffe600]/40 flex items-center space-x-1.5 cursor-pointer hover:border-[#00ff7b]/50 transition-all shrink-0"
+        >
+          <img src={logo} alt="Logo" className="w-5 h-5 object-cover rounded-lg border border-[#ffe600]/40 bg-[#ffe600]/10" />
+          <div className="text-right leading-none">
+            <p className="text-[6px] sm:text-[7px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">PROFIT / HOUR</p>
+            <p className="text-[10px] sm:text-xs font-black text-[#ffe600] yellow-glow">{formatProfitPerHour(profitPerHour)} <Info size={8} className="inline text-gray-400" /></p>
           </div>
         </div>
       </div>
 
       {/* FULL WIDTH ETH BALANCE CARD (MATCHING MOCKUP) */}
-      <div className="bg-[#071320]/90 backdrop-blur-md p-3.5 rounded-2xl border border-[#00e5ff]/40 shadow-[0_0_25px_rgba(0,229,255,0.15)] flex items-center justify-between">
+      <div className="bg-[#071320]/90 backdrop-blur-md p-3 rounded-2xl border border-[#00e5ff]/40 shadow-[0_0_25px_rgba(0,229,255,0.15)] flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-[#00e5ff]/20 border border-[#00e5ff] flex items-center justify-center shadow-[0_0_12px_#00e5ff]">
-            <ETHIcon size={22} />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#00e5ff]/20 border border-[#00e5ff] flex items-center justify-center shadow-[0_0_12px_#00e5ff]">
+            <ETHIcon size={20} />
           </div>
           <div>
             <p className="text-[9px] text-[#00e5ff] uppercase tracking-widest font-black">ETH BALANCE</p>
-            <p className="text-2xl font-black text-white tracking-tight">{Math.floor(points).toLocaleString()}</p>
+            <p className="text-xl sm:text-2xl font-black text-white tracking-tight">{Math.floor(points).toLocaleString()}</p>
           </div>
         </div>
         <div className="bg-[#00ff7b]/10 border border-[#00ff7b]/40 text-[#00ff7b] text-[10px] font-black px-2.5 py-1 rounded-xl shadow-[0_0_10px_rgba(0,255,123,0.2)]">
@@ -586,6 +675,20 @@ const App: React.FC = () => {
       <div className="aurora-2"></div>
 
       <ToastContainer theme="dark" position="top-center" />
+
+      {/* Token Launch Pop-up Modal (Auto Show on Web Entry) */}
+      <TokenLaunchModal
+        isOpen={isLaunchModalOpen}
+        onClose={() => setIsLaunchModalOpen(false)}
+      />
+
+      {/* Real-time Notifications Center Modal */}
+      <NotificationsModal
+        isOpen={activeModal === "notifications"}
+        onClose={() => setActiveModal(null)}
+        notifications={notifications}
+        onClearAll={() => setNotifications([])}
+      />
 
       {/* Interactive Modals System */}
       <UserProfileModal

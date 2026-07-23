@@ -61,13 +61,21 @@ const WalletModal: React.FC<WalletModalProps> = ({
           toast.success("Web3 Wallet connected successfully!");
         }
       } else {
-        // Generate valid demo Web3 EVM address if no extension present
+        // Deep link to MetaMask Mobile App if inside Telegram or Mobile WebView
+        const currentUrl = window.location.href.replace(/^https?:\/\//, "");
+        const metamaskDeepLink = `https://metamask.app.link/dapp/${currentUrl}`;
+
+        // Generate demo address and toast guidance
         const randomHex = Array.from({ length: 40 }, () =>
           Math.floor(Math.random() * 16).toString(16)
         ).join("");
         const mockAddr = `0x${randomHex}`;
         onConnectWallet(mockAddr);
-        toast.info("Web3 EVM Wallet connected on Robinhood Chain!");
+        toast.info("Opening MetaMask Mobile App via Deep Link...");
+
+        setTimeout(() => {
+          window.open(metamaskDeepLink, "_blank");
+        }, 800);
       }
     } catch (error) {
       console.error("Wallet connection error:", error);
@@ -75,6 +83,13 @@ const WalletModal: React.FC<WalletModalProps> = ({
     } finally {
       setIsConnecting(false);
     }
+  };
+
+  const handleOpenMetaMaskApp = () => {
+    const currentUrl = window.location.href.replace(/^https?:\/\//, "");
+    const metamaskDeepLink = `https://metamask.app.link/dapp/${currentUrl}`;
+    toast.info("Opening MetaMask Mobile App...");
+    window.open(metamaskDeepLink, "_blank");
   };
 
   const handleCopyAddress = () => {
@@ -176,6 +191,22 @@ const WalletModal: React.FC<WalletModalProps> = ({
           </div>
         </div>
 
+        {/* Telegram Mobile MetaMask Deep Link Banner */}
+        <div className="bg-[#070510] p-3 rounded-2xl border border-[#ff8800]/40 mb-4 space-y-2">
+          <p className="text-[10px] font-black text-[#ff8800] uppercase tracking-wider flex items-center space-x-1">
+            <span>🦊</span> <span>TELEGRAM METAMASK MOBILE DEEP LINK</span>
+          </p>
+          <p className="text-[10px] text-gray-300 leading-snug">
+            Playing inside Telegram App? Tap below to launch your mobile <strong>MetaMask App</strong> automatically via Deep Link.
+          </p>
+          <button
+            onClick={handleOpenMetaMaskApp}
+            className="w-full py-2.5 rounded-xl bg-[#ff8800]/20 hover:bg-[#ff8800] hover:text-black border border-[#ff8800]/50 text-[#ff8800] font-black text-xs uppercase tracking-wider transition-all"
+          >
+            🦊 Open in MetaMask Mobile App
+          </button>
+        </div>
+
         {/* 📖 DETAILED PROTOCOL GUIDE */}
         <div className="bg-[#070510]/90 p-3.5 rounded-2xl border border-[#00e5ff]/30 mb-4 space-y-1.5 text-xs">
           <p className="font-black text-[#00e5ff] uppercase flex items-center space-x-1.5 text-[11px]">
@@ -183,8 +214,8 @@ const WalletModal: React.FC<WalletModalProps> = ({
           </p>
           <ul className="text-gray-300 space-y-1 text-[10px] sm:text-[11px] list-disc list-inside">
             <li>Connects seamlessly via <strong>ethers.js</strong> on the <strong>Robinhood EVM Chain</strong>.</li>
-            <li>All in-game quantum score points will be converted to <strong>ETH Token Airdrop</strong>.</li>
-            <li>Press <strong>Connect Wallet</strong> to synchronize your MetaMask or Telegram Web3 Wallet.</li>
+            <li>Supports <strong>MetaMask Mobile Deep Link</strong> inside Telegram WebView.</li>
+            <li>Press <strong>Connect EVM Wallet</strong> or <strong>Open in MetaMask</strong> to synchronize.</li>
           </ul>
         </div>
 

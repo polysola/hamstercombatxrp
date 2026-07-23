@@ -43,14 +43,14 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     toast.success("Wallet address copied to clipboard!");
   };
 
-  // Mocked Web3 On-Chain Demo Transaction Logs
+  // Mocked Web3 On-Chain Demo Transaction Logs with EGG Token Symbol
   const transactions = [
     {
       id: "tx-1",
       title: "⚡ Tap Core Mining Rewards",
       txHash: "0x9a8f...4e1b",
       time: "2 mins ago",
-      amount: "+50.0 ETH",
+      amount: "+50.0 EGG",
       status: "DEMO TESTNET",
       color: "text-[#00ff7b]",
     },
@@ -59,7 +59,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       title: "🎁 Daily Cyber Streak Claim",
       txHash: "0x3d2c...1a9e",
       time: "2 hrs ago",
-      amount: "+2,500.0 ETH",
+      amount: "+2,500.0 EGG",
       status: "DEMO TESTNET",
       color: "text-[#00ff7b]",
     },
@@ -68,7 +68,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       title: "🔐 Daily Cipher Morse Solution",
       txHash: "0x7b1a...8f3c",
       time: "5 hrs ago",
-      amount: "+2,500.0 ETH",
+      amount: "+2,500.0 EGG",
       status: "DEMO TESTNET",
       color: "text-[#00e5ff]",
     },
@@ -77,7 +77,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       title: "🤖 Auto Bot Offline Mining Collect",
       txHash: "0x1e5f...9b2d",
       time: "Yesterday",
-      amount: "+3,600.0 ETH",
+      amount: "+3,600.0 EGG",
       status: "DEMO TESTNET",
       color: "text-[#ab00ff]",
     },
@@ -86,7 +86,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       title: "🎟️ Daily Combo Trio Jackpot",
       txHash: "0x8a4d...2e7f",
       time: "Yesterday",
-      amount: "+5,000.0 ETH",
+      amount: "+5,000.0 EGG",
       status: "DEMO TESTNET",
       color: "text-[#ffe600]",
     },
