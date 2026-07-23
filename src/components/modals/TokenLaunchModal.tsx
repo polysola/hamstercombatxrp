@@ -15,7 +15,7 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
     seconds: number;
   }>({ hours: 0, minutes: 0, seconds: 0 });
 
-  const DEV_WALLET_ADDRESS = "0xF66F42154321F1d36594099302b6f6c926e7B51C";
+  const DEV_WALLET_DISPLAY = "0x????...????";
   const LAUNCHPAD_LINK = "https://www.ponsfamily.com/launchpad";
 
   useEffect(() => {
@@ -24,16 +24,23 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
     const calculateCountdown = () => {
       const now = new Date();
 
-      // Target: 14:00 UTC
+      // Target: 02:00:00 UTC tomorrow
       const target = new Date();
-      target.setUTCHours(14, 0, 0, 0);
+      target.setUTCHours(2, 0, 0, 0);
 
-      // If current time is past today's 14:00 UTC, target tomorrow 14:00 UTC
+      // If current UTC time is past today's 02:00 UTC, target tomorrow 02:00 UTC
       if (now.getTime() >= target.getTime()) {
         target.setUTCDate(target.getUTCDate() + 1);
       }
 
-      const diff = Math.max(0, target.getTime() - now.getTime());
+      const diff = target.getTime() - now.getTime();
+
+      // Automatically close modal when timer expires (diff <= 0)
+      if (diff <= 0) {
+        onClose();
+        return;
+      }
+
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
@@ -44,13 +51,12 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
     calculateCountdown();
     const timer = setInterval(calculateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   const handleCopyDevWallet = () => {
-    navigator.clipboard.writeText(DEV_WALLET_ADDRESS);
-    toast.success("Dev Wallet Address copied to clipboard!");
+    toast.info("🔒 Dev Wallet address is confidential until launch!");
   };
 
   return (
@@ -67,12 +73,12 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
             />
           </div>
           <span className="px-3 py-0.5 rounded-full bg-[#00ff7b]/20 border border-[#00ff7b]/50 text-[#00ff7b] text-[9px] font-black tracking-widest uppercase shadow-[0_0_15px_rgba(0,255,123,0.4)] animate-pulse">
-            🔥 OFFICIAL LAUNCH ON PONFAMILY LAUNCHPAD
+            🔥 OFFICIAL LAUNCH ON PONS FAMILY LAUNCHPAD
           </span>
         </div>
 
         {/* Title & Platform Link */}
-        <div className="text-center mb-4">
+        <div className="text-center mb-3">
           <h2 className="text-xl sm:text-2xl font-black uppercase text-white tracking-tight leading-tight">
             EGGRUSH TOKEN LAUNCH
           </h2>
@@ -89,11 +95,11 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
           </p>
         </div>
 
-        {/* Live Countdown Clock */}
-        <div className="bg-[#070510] p-4 rounded-2xl border border-[#00ff7b]/40 mb-4 text-center relative overflow-hidden">
+        {/* Live Countdown Clock to 02:00 AM UTC */}
+        <div className="bg-[#070510] p-4 rounded-2xl border border-[#00ff7b]/40 mb-3 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-[#00ff7b]/10 via-transparent to-transparent pointer-events-none"></div>
           <p className="text-[9px] text-[#00ff7b] font-black uppercase tracking-widest mb-1.5 neon-green-glow">
-            ⏱ LAUNCH COUNTDOWN (14:00 UTC)
+            ⏱ LAUNCH COUNTDOWN (02:00 AM UTC TOMORROW)
           </p>
 
           <div className="flex justify-center items-center space-x-2 sm:space-x-3 my-2">
@@ -122,7 +128,7 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
           {/* Timezone & Platform Badges */}
           <div className="flex flex-wrap justify-center gap-1.5 mt-3 pt-2 border-t border-white/10">
             <div className="bg-[#00e5ff]/10 border border-[#00e5ff]/30 px-3 py-1 rounded-lg">
-              <span className="text-[10px] text-[#00e5ff] font-black tracking-wider">🌐 LAUNCH TIME: 14:00 UTC</span>
+              <span className="text-[10px] text-[#00e5ff] font-black tracking-wider">🌐 LAUNCH TIME: 02:00 AM UTC</span>
             </div>
             <button
               onClick={() => window.open(LAUNCHPAD_LINK, "_blank")}
@@ -134,7 +140,7 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
         </div>
 
         {/* Dev Wallet Address Card */}
-        <div className="bg-[#070510] p-3.5 rounded-2xl border border-[#ffe600]/40 mb-4 space-y-2">
+        <div className="bg-[#070510] p-3.5 rounded-2xl border border-[#ffe600]/40 mb-3 space-y-2">
           <div className="flex justify-between items-center">
             <p className="text-[10px] font-black text-[#ffe600] uppercase tracking-wider yellow-glow flex items-center space-x-1">
               <span>💳</span> <span>OFFICIAL DEV WALLET ADDRESS</span>
@@ -142,21 +148,32 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
             <span className="text-[8px] font-bold text-gray-400 uppercase">EVM CHAIN</span>
           </div>
 
-          <div className="bg-[#0a1424] p-2.5 rounded-xl border border-[#ffe600]/30 font-mono text-[10px] sm:text-xs text-white font-bold break-all select-all text-center">
-            {DEV_WALLET_ADDRESS}
+          <div className="bg-[#0a1424] p-2.5 rounded-xl border border-[#ffe600]/30 font-mono text-xs sm:text-sm text-[#ffe600] font-black break-all text-center tracking-widest shadow-[0_0_10px_rgba(255,230,0,0.2)]">
+            {DEV_WALLET_DISPLAY}
           </div>
 
           <button
             onClick={handleCopyDevWallet}
-            className="w-full py-2.5 rounded-xl bg-[#ffe600]/20 hover:bg-[#ffe600] hover:text-black border border-[#ffe600]/50 text-[#ffe600] font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(255,230,0,0.3)] flex items-center justify-center space-x-1.5"
+            className="w-full py-2 rounded-xl bg-[#ffe600]/20 hover:bg-[#ffe600] hover:text-black border border-[#ffe600]/50 text-[#ffe600] font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(255,230,0,0.3)] flex items-center justify-center space-x-1.5"
           >
-            <span>📋</span>
-            <span>Copy Dev Wallet Address</span>
+            <span>🔒</span>
+            <span>Dev Wallet Address Confidential</span>
           </button>
         </div>
 
+        {/* Security Warning Box */}
+        <div className="bg-red-500/10 border border-red-500/40 rounded-2xl p-3 mb-3 space-y-1 text-center">
+          <p className="text-[11px] font-black text-red-400 uppercase tracking-wider flex items-center justify-center space-x-1">
+            <span>⚠️</span>
+            <span>BEWARE OF FAKE CONTRACT ADDRESSES</span>
+          </p>
+          <p className="text-[10px] text-gray-300 font-medium leading-relaxed">
+            Do not trust any unverified contract addresses! Official token contract address will ONLY be published on our verified channels when the countdown reaches 00:00:00.
+          </p>
+        </div>
+
         {/* Official Social Channels */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-3">
           <button
             onClick={() => window.open("https://x.com/EggRushRH", "_blank")}
             className="py-3 rounded-2xl bg-[#0a1424] hover:bg-[#00ff7b]/20 border border-[#00ff7b]/40 text-[#00ff7b] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 group"
