@@ -1,126 +1,120 @@
-import { db } from '../config/firebase';
-import { doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
-import { UserScore, APIReferralUser } from '../types/user';
+import { db } from "../config/firebase";
+import { 
+    collection, 
+    doc, 
+    getDoc, 
+    setDoc, 
+    query, 
+    orderBy, 
+    limit, 
+    getDocs, 
+    where, 
+    increment,
+    runTransaction
+} from "firebase/firestore";
 
-export const saveUserScore = async (
-    username: string,
-    score: number,
-    levelMin: number
-): Promise<boolean> => {
+interface UserScore {
+    score: number;
+    username: string;
+    lastUpdated?: string;
+    referrer?: string;
+    isPremium?: boolean;
+}
+
+const COLLECTION_NAME = "DataXRP";
+
+export const saveUserScore = async (username: string, score: number, _minPoints?: number): Promise<void> => {
     try {
-        const tg = window.Telegram?.WebApp;
-        const photoUrl = tg?.initDataUnsafe?.user?.photo_url;
-
-        const existingData = await getUserScore(username);
-        const scoreDiff = score - (existingData?.score || 0);
-
-        // Nếu điểm tăng, xử lý phần thưởng ref
-        if (scoreDiff > 0) {
-            await processReferralReward(username, scoreDiff);
-        }
-
+        const userRef = doc(db, COLLECTION_NAME, username);
         const userData: UserScore = {
             username,
             score,
-            levelMin,
-            photoUrl: photoUrl || existingData?.photoUrl || "/logo.png",
-            lastUpdated: new Date().toISOString(),
-            referrer: existingData?.referrer || "",
-            referralCode: username,
-            totalRefEarnings: existingData?.totalRefEarnings || 0,
-            referralEarnings: existingData?.referralEarnings || {}
+            lastUpdated: new Date().toISOString()
         };
 
-        await setDoc(doc(db, "DataXRP", username), userData);
-        return true;
+        await setDoc(userRef, userData, { merge: true });
+        console.log(`Saved score ${score} for user ${username}`);
     } catch (error) {
-        console.error("Error saving score:", error);
-        return false;
+        console.error("Error saving user score:", error);
     }
 };
 
 export const getUserScore = async (username: string): Promise<UserScore | null> => {
     try {
-        const docRef = doc(db, "DataXRP", username);
-        const docSnap = await getDoc(docRef);
-        return docSnap.exists() ? docSnap.data() as UserScore : null;
+        const userRef = doc(db, COLLECTION_NAME, username);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+            return userDoc.data() as UserScore;
+        }
+        return null;
     } catch (error) {
-        console.error("Error getting score:", error);
+        console.error("Error getting user score:", error);
         return null;
     }
 };
 
-interface LeaderboardEntry {
-    username: string;
-    score: number;
-    photoUrl: string;
-}
-
-export const getLeaderboard = async (limitCount: number = 10): Promise<LeaderboardEntry[]> => {
+export const getLeaderboard = async (limitCount: number = 10): Promise<{ username: string; score: number }[]> => {
     try {
         const q = query(
-            collection(db, "DataXRP"),
+            collection(db, COLLECTION_NAME),
             orderBy("score", "desc"),
             limit(limitCount)
         );
 
-        console.log("Fetching leaderboard from Firestore...");
         const querySnapshot = await getDocs(q);
-        console.log(`Found ${querySnapshot.docs.length} users in leaderboard`);
+        const leaderboard: { username: string; score: number }[] = [];
 
-        const leaderboard = querySnapshot.docs.map(doc => {
-            const data = doc.data() as UserScore;
-            return {
-                username: data.username,
-                score: data.score,
-                photoUrl: data.photoUrl || "/logo.png"
-            };
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            leaderboard.push({
+                username: data.username || doc.id,
+                score: data.score || 0
+            });
         });
 
-        console.log("Leaderboard data processed:", leaderboard);
         return leaderboard;
     } catch (error) {
-        console.error("Error getting leaderboard detailed:", error);
+        console.error("Error getting leaderboard:", error);
         return [];
     }
 };
 
-export const getReferrals = async (username: string): Promise<APIReferralUser[]> => {
+export const getReferrals = async (username: string): Promise<{ username: string; score: number }[]> => {
     try {
-        // Lấy thông tin người giới thiệu (current user)
-        const currentUser = await getUserScore(username);
-        if (!currentUser) {
-            console.error('Current user not found:', username);
-            return [];
-        }
-
-        // Lấy danh sách người được giới thiệu
+        console.log('Fetching referrals for user:', username);
+        
         const q = query(
-            collection(db, "DataXRP"),
-            where("referrer", "==", username),
-            orderBy("totalRefEarnings", "desc")
+            collection(db, COLLECTION_NAME),
+            where("referrer", "==", username)
         );
 
         const querySnapshot = await getDocs(q);
-        const referrals = querySnapshot.docs.map(doc => {
-            const data = doc.data() as UserScore;
-            return {
-                ...data,
-                earnedFromRef: data.totalRefEarnings || 0
-            };
+        console.log('Query snapshot size:', querySnapshot.size);
+
+        const referrals: { username: string; score: number }[] = [];
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            console.log('Found referral doc:', doc.id, data);
+            referrals.push({
+                username: data.username || doc.id,
+                score: data.score || 0
+            });
         });
 
-        // Thêm thông tin người giới thiệu vào đầu danh sách
-        const result = [{
-            ...currentUser,
-            earnedFromRef: currentUser.totalRefEarnings || 0
-        }, ...referrals];
+        const currentUserDoc = await getUserScore(username);
+        console.log('Current user doc:', currentUserDoc);
 
-        console.log('Full referral data:', {
-            currentUser: result[0],
-            referrals: result.slice(1)
-        });
+        const result = [
+            {
+                username: username,
+                score: currentUserDoc?.score || 0
+            },
+            ...referrals
+        ];
 
+        console.log('Final referrals result:', result);
         return result;
     } catch (error) {
         console.error("Error getting referrals:", error);
@@ -132,7 +126,7 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
     try {
         console.log('Setting referrer - Username:', username, 'Referrer code:', referrerCode);
 
-        // Kiểm tra nếu người dùng tự giới thiệu chính mình
+        // Check if user is trying to refer themselves
         if (username.toLowerCase() === referrerCode.toLowerCase()) {
             console.log('Cannot refer yourself');
             return false;
@@ -141,14 +135,14 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
         let userData = await getUserScore(username);
         console.log('Current user data:', userData);
 
-        // Kiểm tra chuỗi referrer để tránh vòng lặp
+        // Check for referral loop
         const checkReferrerChain = async (startUser: string, targetUser: string): Promise<boolean> => {
             let currentUser = startUser;
             const visited = new Set<string>();
 
             while (currentUser) {
-                if (visited.has(currentUser)) return false; // Phát hiện vòng lặp
-                if (currentUser.toLowerCase() === targetUser.toLowerCase()) return false; // Tìm thấy user trong chuỗi
+                if (visited.has(currentUser)) return false; // Cycle detected
+                if (currentUser.toLowerCase() === targetUser.toLowerCase()) return false; // Target found in chain
 
                 visited.add(currentUser);
                 const userDoc = await getUserScore(currentUser);
@@ -157,191 +151,138 @@ export const setReferrer = async (username: string, referrerCode: string): Promi
             return true;
         };
 
-        // Kiểm tra chuỗi referrer
-        const isValidChain = await checkReferrerChain(referrerCode, username);
-        if (!isValidChain) {
-            console.log('Invalid referral chain detected');
+        // Validate referrer chain
+        const isValidReferrer = await checkReferrerChain(referrerCode, username);
+        if (!isValidReferrer) {
+            console.log('Invalid referrer: referral loop detected');
             return false;
         }
 
-        // Nếu user chưa tồn tại, tạo mới
-        if (!userData) {
-            console.log('Creating new user');
-            userData = {
-                username,
-                score: 1000,
-                levelMin: 0,
-                photoUrl: "/logo.png",
-                lastUpdated: new Date().toISOString(),
-                referrer: referrerCode,
-                referralCode: username,
-                totalRefEarnings: 0,
-                referralEarnings: {}
-            };
-            await setDoc(doc(db, "DataXRP", username), userData);
-            console.log('Created new user with referrer');
-            return true;
-        }
-
-        // Nếu user đã tồn tại và đã có người giới thiệu
-        if (userData.referrer) {
-            console.log('User already has referrer:', userData.referrer);
+        const referrerDoc = await getUserScore(referrerCode);
+        if (!referrerDoc) {
+            console.log('Referrer code does not exist:', referrerCode);
             return false;
         }
 
-        const referrer = await getUserScore(referrerCode);
-        console.log('Referrer data:', referrer);
+        // Run atomic transaction to add referrer and reward both users
+        await runTransaction(db, async (transaction) => {
+            const userRef = doc(db, COLLECTION_NAME, username);
+            const userDoc = await transaction.get(userRef);
 
-        if (!referrer) {
-            console.log('Referrer does not exist in database');
-            return false;
-        }
-
-        // Cập nhật thông tin người được giới thiệu
-        const updatedUserData: UserScore = {
-            ...userData,
-            referrer: referrerCode,
-            totalRefEarnings: 0,
-            referralEarnings: userData.referralEarnings || {}
-        };
-        console.log('Updating user data with:', updatedUserData);
-
-        await setDoc(doc(db, "DataXRP", username), updatedUserData);
-        console.log('Successfully set referrer');
-        return true;
-    } catch (error) {
-        console.error("Error setting referrer:", error);
-        return false;
-    }
-};
-
-export const processReferralReward = async (referral: string, amount: number): Promise<void> => {
-    try {
-        console.log('Processing referral reward for:', referral, 'Amount:', amount);
-
-        // Lấy thông tin người được giới thiệu
-        const referralUser = await getUserScore(referral);
-        console.log('Referral user data:', referralUser);
-
-        if (!referralUser?.referrer) {
-            console.log('User has no referrer, skipping reward');
-            return;
-        }
-
-        // Tính toán phần thưởng (5% earnings) cho người giới thiệu trực tiếp
-        const reward = Math.floor(amount * 0.05);
-        if (reward <= 0) {
-            console.log('No reward to process');
-            return;
-        }
-
-        console.log('Calculated reward for direct referrer:', reward);
-
-        // Cập nhật số dư và tổng thu nhập từ ref cho người giới thiệu trực tiếp
-        const directReferrer = await getUserScore(referralUser.referrer);
-        console.log('Direct referrer data before update:', directReferrer);
-
-        if (directReferrer) {
-            // Lấy earnings hiện tại từ người này (nếu có)
-            const currentEarnings = directReferrer.referralEarnings?.[referral]?.amount || 0;
-            const newEarnings = currentEarnings + reward;
-
-            // Cập nhật chi tiết earnings cho người này
-            const updatedReferralEarnings = {
-                ...(directReferrer.referralEarnings || {}),
-                [referral]: {
-                    username: referral,
-                    amount: newEarnings,
-                    lastUpdated: new Date().toISOString()
-                }
-            };
-
-            // Tính lại tổng earnings từ tất cả referrals
-            const totalRefEarnings = Object.values(updatedReferralEarnings)
-                .reduce((sum, earning) => sum + earning.amount, 0);
-
-            // Tạo bản sao của directReferrer để tránh mất dữ liệu
-            const updatedReferrerData: UserScore = {
-                ...directReferrer,
-                score: directReferrer.score + reward,
-                totalRefEarnings,
-                referralEarnings: updatedReferralEarnings,
-                lastUpdated: new Date().toISOString()
-            };
-
-            console.log('Current total earnings:', directReferrer.totalRefEarnings);
-            console.log('New total earnings:', totalRefEarnings);
-            console.log('Earnings difference:', totalRefEarnings - directReferrer.totalRefEarnings);
-
-            // Kiểm tra nếu tổng earnings mới nhỏ hơn tổng cũ
-            if (totalRefEarnings < directReferrer.totalRefEarnings) {
-                console.error('New total earnings is less than current total earnings, skipping update');
-                return;
+            if (userDoc.exists() && userDoc.data().referrer) {
+                console.log('User already has a referrer');
+                return false;
             }
 
-            console.log('Updating direct referrer data with:', updatedReferrerData);
-            await setDoc(doc(db, "DataXRP", referralUser.referrer), updatedReferrerData);
+            const referrerRef = doc(db, COLLECTION_NAME, referrerCode);
 
-            // Verify update
-            const updatedReferrer = await getUserScore(referralUser.referrer);
-            console.log('Direct referrer data after update:', updatedReferrer);
-            console.log('Successfully processed referral reward for direct referrer:', {
-                previousEarnings: currentEarnings,
-                newEarnings,
-                totalRefEarnings,
-                fromUser: referral
+            // Award referral bonus (+2500 EGG points)
+            const bonusPoints = 2500;
+
+            if (userDoc.exists()) {
+                transaction.update(userRef, {
+                    referrer: referrerCode,
+                    score: increment(bonusPoints)
+                });
+            } else {
+                transaction.set(userRef, {
+                    username,
+                    score: bonusPoints,
+                    referrer: referrerCode,
+                    lastUpdated: new Date().toISOString()
+                });
+            }
+
+            transaction.update(referrerRef, {
+                score: increment(bonusPoints)
             });
-        } else {
-            console.log('Direct referrer not found in database');
-        }
-    } catch (error) {
-        console.error("Error processing referral reward:", error);
-    }
-};
+        });
 
-export const handleStartParameter = (): string | null => {
-    try {
-        const tg = window.Telegram?.WebApp;
-        console.log('Telegram WebApp:', tg);
-
-        // Kiểm tra start_param từ initDataUnsafe
-        if (tg?.initDataUnsafe?.start_param) {
-            console.log('Found start_param in initDataUnsafe:', tg.initDataUnsafe.start_param);
-            return tg.initDataUnsafe.start_param;
-        }
-
-        // Kiểm tra URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const startCommand = urlParams.get('command');
-        const startParam = urlParams.get('parameter');
-
-        if (startCommand === 'start' && startParam) {
-            console.log('Found start parameter in URL:', startParam);
-            return startParam;
-        }
-
-        // Kiểm tra localStorage
-        const savedCode = localStorage.getItem('referral_code');
-        if (savedCode) {
-            console.log('Found saved referral code:', savedCode);
-            localStorage.removeItem('referral_code');
-            return savedCode;
-        }
-
-        return null;
-    } catch (error) {
-        console.error('Error handling start parameter:', error);
-        return null;
-    }
-};
-
-export const saveReferralCode = (code: string): boolean => {
-    try {
-        localStorage.setItem('referral_code', code);
-        console.log('Saved referral code to localStorage:', code);
+        console.log('Referrer set successfully and bonus points awarded');
         return true;
+
     } catch (error) {
-        console.error('Error saving referral code:', error);
+        console.error('Error setting referrer:', error);
         return false;
+    }
+};
+
+export const checkAndUpdateOfflinePoints = async (username: string): Promise<number> => {
+    try {
+        const userRef = doc(db, COLLECTION_NAME, username);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            return 0;
+        }
+
+        const data = userDoc.data() as UserScore;
+        if (!data.lastUpdated) {
+            return 0;
+        }
+
+        const lastUpdated = new Date(data.lastUpdated).getTime();
+        const now = new Date().getTime();
+        const diffInSeconds = Math.floor((now - lastUpdated) / 1000);
+
+        if (diffInSeconds < 10) {
+            return 0;
+        }
+
+        const MAX_OFFLINE_SECONDS = 3 * 3600; // Cap at 3 hours max
+        const actualOfflineSeconds = Math.min(diffInSeconds, MAX_OFFLINE_SECONDS);
+
+        const PROFIT_PER_HOUR = 1200;
+        const offlinePoints = Math.floor((actualOfflineSeconds * PROFIT_PER_HOUR) / 3600);
+
+        if (offlinePoints > 0) {
+            const newScore = (data.score || 0) + offlinePoints;
+            await setDoc(userRef, {
+                score: newScore,
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+
+            return offlinePoints;
+        }
+
+        return 0;
+    } catch (error) {
+        console.error("Error checking offline points:", error);
+        return 0;
+    }
+};
+
+export const updateLastActiveTime = async (username: string): Promise<void> => {
+    try {
+        const userRef = doc(db, COLLECTION_NAME, username);
+        await setDoc(userRef, {
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error updating last active time:", error);
+    }
+};
+
+export const resetOfflinePoints = async (username: string): Promise<void> => {
+    try {
+        const userRef = doc(db, COLLECTION_NAME, username);
+        await setDoc(userRef, {
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error resetting offline points:", error);
+    }
+};
+
+export const saveUserScoreImmediate = async (username: string, score: number): Promise<void> => {
+    try {
+        const userRef = doc(db, COLLECTION_NAME, username);
+        await setDoc(userRef, {
+            username,
+            score,
+            lastUpdated: new Date().toISOString()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error saving score immediately:", error);
     }
 };

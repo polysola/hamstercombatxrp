@@ -15,10 +15,10 @@ import Settings from "./icons/Settings";
 import Friends from "./icons/Friends";
 import RankingIcon from "./icons/RankingIcon";
 import Hamster from "./icons/Hamster";
-import Swap from "./icons/Swap";
 import ETHIcon from "./icons/ETHIcon";
 import XIcon from "./icons/XIcon";
 import TelegramIcon from "./icons/TelegramIcon";
+import BookIcon from "./icons/BookIcon";
 import HeroReactorRing from "./components/HeroReactorRing";
 import {
   saveUserScore,
@@ -41,6 +41,7 @@ import AutoBotModal from "./components/modals/AutoBotModal";
 import UserProfileModal from "./components/modals/UserProfileModal";
 import TokenLaunchModal from "./components/modals/TokenLaunchModal";
 import NotificationsModal, { NotificationItem } from "./components/modals/NotificationsModal";
+import DocsModal from "./components/modals/DocsModal";
 
 // TypeScript Definitions
 interface LeaderboardUser {
@@ -88,6 +89,7 @@ type ModalType =
   | "autobot"
   | "profile"
   | "notifications"
+  | "docs"
   | null;
 
 const App: React.FC = () => {
@@ -280,10 +282,6 @@ const App: React.FC = () => {
     } else if (tab === "referral") {
       refetchReferrals();
     }
-  };
-
-  const handleSwapClick = () => {
-    toast.info("🔄 EggRush EGG Swap Protocol coming soon in V2!");
   };
 
   // Energy Restoration Timer - Exact +3 Energy per second
@@ -779,6 +777,10 @@ const App: React.FC = () => {
           setBotEarnings(0);
         }}
       />
+      <DocsModal
+        isOpen={activeModal === "docs"}
+        onClose={() => setActiveModal(null)}
+      />
 
       {isLoading ? (
         <div className="w-full h-screen flex items-center justify-center text-[#f0eeff] z-50 bg-[#060a12]">
@@ -1051,17 +1053,16 @@ const App: React.FC = () => {
               {activeTab === "main" && <div className="w-1 h-1 bg-[#00ff7b] rounded-full mt-0.5 shadow-[0_0_6px_#00ff7b]"></div>}
             </div>
 
-            {/* SWAP TAB */}
+            {/* DOCS TAB */}
             <div
-              onClick={handleSwapClick}
-              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#00e5ff] transition-all relative"
+              onClick={() => setActiveModal("docs")}
+              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#00e5ff] transition-all relative group"
             >
               <div className="flex items-center">
-                <Swap size={18} className="text-gray-400 hover:text-[#00e5ff]" />
+                <BookIcon size={18} className="text-[#00e5ff] group-hover:scale-110 transition-transform" />
               </div>
               <div className="flex items-center space-x-1 mt-1">
-                <span className="text-[8px] font-black uppercase">SWAP</span>
-                <span className="text-[6px] text-[#ffe600] font-black bg-[#ffe600]/10 px-1 rounded border border-[#ffe600]/30">SOON</span>
+                <span className="text-[8px] font-black uppercase text-[#00e5ff]">DOCS</span>
               </div>
             </div>
 
