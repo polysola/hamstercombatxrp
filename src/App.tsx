@@ -846,22 +846,22 @@ const App: React.FC = () => {
                 <HeroReactorRing eggHealth={eggHealth}>
                   {/* HERO CHARACTER - LARGER EGG FOR BETTER IMPACT */}
                   <div className="egg-container" style={{ cursor: `url(${hammer}) 16 16, pointer` }}>
-                    <div className={`w-60 h-60 sm:w-72 sm:h-72 p-3 rounded-full flex items-center justify-center relative overflow-hidden group shadow-[0_0_90px_rgba(0,255,123,0.5)] ${isShaking ? "animate-egg-shake" : ""}`} onClick={handleCardClick}>
-                      <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-[98%] h-[98%] object-contain drop-shadow-[0_15px_45px_rgba(0,255,123,0.65)] transition-transform duration-500 group-hover:scale-105" />
+                    <div className={`w-64 h-64 sm:w-80 sm:h-80 p-2 rounded-full flex items-center justify-center relative overflow-hidden group shadow-[0_0_90px_rgba(0,255,123,0.55)] ${isShaking ? "animate-egg-shake" : ""}`} onClick={handleCardClick}>
+                      <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-[98%] h-[98%] object-contain drop-shadow-[0_15px_45px_rgba(0,255,123,0.7)] transition-transform duration-500 group-hover:scale-105" />
 
                       {/* Impact Ripples */}
                       {hammerAnimations.map(h => (
                         <div key={`ripple-${h.id}`} className="absolute impact-ripple" style={{ left: h.x, top: h.y }}></div>
                       ))}
 
-                      {/* Hammer Visual */}
+                      {/* Much Larger Robinhood Hammer Visual */}
                       {hammerAnimations.map(h => (
                         <img
                           key={`hammer-${h.id}`}
                           src={hammer}
-                          alt="Hammer"
-                          className="absolute w-12 h-12 pointer-events-none z-50 animate-hammer-strike"
-                          style={{ left: h.x - 24, top: h.y - 36 }}
+                          alt="Robinhood Hammer"
+                          className="absolute w-24 h-24 sm:w-28 sm:h-28 pointer-events-none z-50 animate-hammer-strike filter drop-shadow-[0_0_20px_#00ff7b]"
+                          style={{ left: h.x - 48, top: h.y - 64 }}
                         />
                       ))}
                     </div>

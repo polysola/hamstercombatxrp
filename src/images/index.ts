@@ -7,7 +7,7 @@ import dailyCombo from "./daily-combo.png";
 import mainCharacter from "./main-character.png";
 import hamsterCoin from "./logo.png";
 import logo from "./logo.png";
-import hammer from './hammer.png';
+import hammer from './hammerrh.png';
 import egg from './egg.png';
 import hatchedEgg from './hatched-egg.png';
 import bg from './bg.png';
