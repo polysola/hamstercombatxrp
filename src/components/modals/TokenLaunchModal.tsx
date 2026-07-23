@@ -15,7 +15,7 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
     seconds: number;
   }>({ hours: 0, minutes: 0, seconds: 0 });
 
-  const DEV_WALLET_DISPLAY = "0x????...????";
+  const DEV_WALLET_ADDRESS = "0x078AE3440C6dA793dBC5b9Cc9b40b04E97D5053e";
   const LAUNCHPAD_LINK = "https://www.ponsfamily.com/launchpad";
 
   useEffect(() => {
@@ -24,13 +24,12 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
     const calculateCountdown = () => {
       const now = new Date();
 
-      // Target: 02:00:00 UTC tomorrow
+      // Target: 02:00 AM tomorrow (Local / Vietnam time zone: ~4 hours away from 22:00)
       const target = new Date();
-      target.setUTCHours(2, 0, 0, 0);
+      target.setHours(2, 0, 0, 0);
 
-      // If current UTC time is past today's 02:00 UTC, target tomorrow 02:00 UTC
       if (now.getTime() >= target.getTime()) {
-        target.setUTCDate(target.getUTCDate() + 1);
+        target.setDate(target.getDate() + 1);
       }
 
       const diff = target.getTime() - now.getTime();
@@ -56,7 +55,8 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
   if (!isOpen) return null;
 
   const handleCopyDevWallet = () => {
-    toast.info("🔒 Dev Wallet address is confidential until launch!");
+    navigator.clipboard.writeText(DEV_WALLET_ADDRESS);
+    toast.success("Dev Wallet Address copied to clipboard!");
   };
 
   return (
@@ -95,11 +95,11 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
           </p>
         </div>
 
-        {/* Live Countdown Clock to 02:00 AM UTC */}
+        {/* Live Countdown Clock to 02:00 AM Tomorrow (~4h) */}
         <div className="bg-[#070510] p-4 rounded-2xl border border-[#00ff7b]/40 mb-3 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-[#00ff7b]/10 via-transparent to-transparent pointer-events-none"></div>
           <p className="text-[9px] text-[#00ff7b] font-black uppercase tracking-widest mb-1.5 neon-green-glow">
-            ⏱ LAUNCH COUNTDOWN (02:00 AM UTC TOMORROW)
+            ⏱ LAUNCH COUNTDOWN (19:00 UTC)
           </p>
 
           <div className="flex justify-center items-center space-x-2 sm:space-x-3 my-2">
@@ -128,7 +128,7 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
           {/* Timezone & Platform Badges */}
           <div className="flex flex-wrap justify-center gap-1.5 mt-3 pt-2 border-t border-white/10">
             <div className="bg-[#00e5ff]/10 border border-[#00e5ff]/30 px-3 py-1 rounded-lg">
-              <span className="text-[10px] text-[#00e5ff] font-black tracking-wider">🌐 LAUNCH TIME: 02:00 AM UTC</span>
+              <span className="text-[10px] text-[#00e5ff] font-black tracking-wider">🌐 LAUNCH DATE: JULY 23, 2026 - 19:00 UTC</span>
             </div>
             <button
               onClick={() => window.open(LAUNCHPAD_LINK, "_blank")}
@@ -148,16 +148,16 @@ const TokenLaunchModal: React.FC<TokenLaunchModalProps> = ({ isOpen, onClose }) 
             <span className="text-[8px] font-bold text-gray-400 uppercase">EVM CHAIN</span>
           </div>
 
-          <div className="bg-[#0a1424] p-2.5 rounded-xl border border-[#ffe600]/30 font-mono text-xs sm:text-sm text-[#ffe600] font-black break-all text-center tracking-widest shadow-[0_0_10px_rgba(255,230,0,0.2)]">
-            {DEV_WALLET_DISPLAY}
+          <div className="bg-[#0a1424] p-2.5 rounded-xl border border-[#ffe600]/30 font-mono text-xs sm:text-sm text-[#ffe600] font-black break-all text-center tracking-tight shadow-[0_0_10px_rgba(255,230,0,0.2)] select-all">
+            {DEV_WALLET_ADDRESS}
           </div>
 
           <button
             onClick={handleCopyDevWallet}
-            className="w-full py-2 rounded-xl bg-[#ffe600]/20 hover:bg-[#ffe600] hover:text-black border border-[#ffe600]/50 text-[#ffe600] font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(255,230,0,0.3)] flex items-center justify-center space-x-1.5"
+            className="w-full py-2.5 rounded-xl bg-[#ffe600]/20 hover:bg-[#ffe600] hover:text-black border border-[#ffe600]/50 text-[#ffe600] font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(255,230,0,0.3)] flex items-center justify-center space-x-1.5"
           >
-            <span>🔒</span>
-            <span>Dev Wallet Address Confidential</span>
+            <span>📋</span>
+            <span>Copy Official Dev Wallet Address</span>
           </button>
         </div>
 
