@@ -1,4 +1,5 @@
 import React from "react";
+import { logo } from "../images";
 
 interface LeaderboardUser {
   username: string;
@@ -44,9 +45,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
       </div>
       <div className="space-y-3">
         {users.map((user, index) => {
-          const avatarSrc =
-            user.photoUrl ||
-            `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.username)}`;
+          // Primary Avatar from Telegram or High-Res Dicebear PNG API, with onError fallback to local logo
+          const apiAvatar = `https://api.dicebear.com/7.x/bottts/png?seed=${encodeURIComponent(user.username)}&size=96`;
+          const avatarSrc = user.photoUrl || apiAvatar;
+
           return (
             <div
               key={user.username}
@@ -74,6 +76,12 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                     <img
                       src={avatarSrc}
                       alt={user.username}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== logo) {
+                          target.src = logo;
+                        }
+                      }}
                       className="w-10 h-10 rounded-full object-cover bg-[#070510]"
                     />
                   </div>

@@ -73,12 +73,11 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<{ usernam
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             const uname = data.username || doc.id;
-            const fallbackAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(uname)}`;
 
             leaderboard.push({
                 username: uname,
                 score: data.score || 0,
-                photoUrl: data.photoUrl || fallbackAvatar
+                photoUrl: data.photoUrl || undefined
             });
         });
 
