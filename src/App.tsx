@@ -1049,7 +1049,7 @@ const App: React.FC = () => {
               <div className="w-8 h-8 rounded-full bg-[#00ff7b]/20 border border-[#00ff7b] flex items-center justify-center shadow-[0_0_10px_#00ff7b]">
                 <img src={robinhood} alt="Robinhood" className="w-5 h-5 object-contain" />
               </div>
-              <span className="text-[8px] font-black uppercase mt-0.5">MINE</span>
+              <span className="text-[8px] font-black uppercase mt-0.5">HOME</span>
               {activeTab === "main" && <div className="w-1 h-1 bg-[#00ff7b] rounded-full mt-0.5 shadow-[0_0_6px_#00ff7b]"></div>}
             </div>
 
