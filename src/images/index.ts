@@ -12,6 +12,7 @@ import egg from './egg.png';
 import hatchedEgg from './hatched-egg.png';
 import bg from './bg.png';
 import suit from './suit.png';
+import robinhood from './robinhood.png';
 
 export {
     hamsterExchange,
@@ -27,5 +28,6 @@ export {
     egg,
     hatchedEgg,
     bg,
-    suit
+    suit,
+    robinhood
 };

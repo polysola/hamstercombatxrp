@@ -1,26 +1,25 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./App.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  dailyCipher,
-  dailyCombo,
-  dailyReward,
-  dollarCoin,
   logo,
   hammer,
   egg,
   hatchedEgg,
   bg,
-  binanceLogo,
+  robinhood,
 } from "./images";
 import Info from "./icons/Info";
 import Settings from "./icons/Settings";
-import Mine from "./icons/Mine";
 import Friends from "./icons/Friends";
 import RankingIcon from "./icons/RankingIcon";
 import Hamster from "./icons/Hamster";
 import Swap from "./icons/Swap";
+import ETHIcon from "./icons/ETHIcon";
+import XIcon from "./icons/XIcon";
+import TelegramIcon from "./icons/TelegramIcon";
+import HeroReactorRing from "./components/HeroReactorRing";
 import {
   saveUserScore,
   getUserScore,
@@ -30,6 +29,16 @@ import {
 import Leaderboard from "./components/Leaderboard";
 import Referral from "./components/Referral";
 import { useReferral } from "./hooks/useReferral";
+
+// Modals Import
+import WalletModal from "./components/modals/WalletModal";
+import SettingsModal from "./components/modals/SettingsModal";
+import DailyRewardModal from "./components/modals/DailyRewardModal";
+import DailyCipherModal from "./components/modals/DailyCipherModal";
+import DailyComboModal from "./components/modals/DailyComboModal";
+import BoostModal from "./components/modals/BoostModal";
+import AutoBotModal from "./components/modals/AutoBotModal";
+import UserProfileModal from "./components/modals/UserProfileModal";
 
 // TypeScript Definitions
 interface LeaderboardUser {
@@ -67,6 +76,8 @@ interface HammerAnimation {
   y: number;
 }
 
+type ModalType = "wallet" | "settings" | "reward" | "cipher" | "combo" | "boost" | "autobot" | "profile" | null;
+
 const App: React.FC = () => {
   const levelNames = [
     "Bronze", "Silver", "Gold", "Platinum", "Diamond",
@@ -78,13 +89,27 @@ const App: React.FC = () => {
     []
   );
 
-  const [points, setPoints] = useState(1000);
+  const [points, setPoints] = useState(1380);
   const [clicks, setClicks] = useState<ClickEffect[]>([]);
-  const profitPerHour = 7200;
+  const [lastTapEarned, setLastTapEarned] = useState<number>(2);
+  const profitPerHour = 1200;
 
-  const [dailyRewardTimeLeft, setDailyRewardTimeLeft] = useState("");
-  const [dailyCipherTimeLeft, setDailyCipherTimeLeft] = useState("");
-  const [dailyComboTimeLeft, setDailyComboTimeLeft] = useState("");
+  // Energy & Boost System
+  const [energy, setEnergy] = useState(1000);
+  const maxEnergy = 1000;
+  const [isBoostActive, setIsBoostActive] = useState(false);
+  const [boostTimeLeft, setBoostTimeLeft] = useState(0);
+  const [botEarnings, setBotEarnings] = useState(0);
+
+  // Dynamic EVM Wallet State
+  const [walletAddress, setWalletAddress] = useState<string>("");
+
+  // Active Modal State
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+
+  const [dailyRewardTimeLeft, setDailyRewardTimeLeft] = useState("16:29:18");
+  const [dailyCipherTimeLeft, setDailyCipherTimeLeft] = useState("01:29:18");
+  const [dailyComboTimeLeft, setDailyComboTimeLeft] = useState("04:29:18");
 
   const [user, setUser] = useState<{
     username: string;
@@ -103,7 +128,7 @@ const App: React.FC = () => {
   } = useReferral(user?.username);
   const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
 
-  const [eggHealth, setEggHealth] = useState(100);
+  const [eggHealth, setEggHealth] = useState(92.7);
   const [eggClicks, setEggClicks] = useState(0);
   const [isHatching, setIsHatching] = useState(false);
   const [crackEffects, setCrackEffects] = useState<CrackEffect[]>([]);
@@ -126,14 +151,41 @@ const App: React.FC = () => {
   } | null>(null);
 
   const CLICKS_TO_HATCH = 15;
-  const HATCH_BONUS = 250;
+  const HATCH_BONUS = 100;
+
+  // Exact Database Persistence Helper
+  const persistScoreToDatabase = useCallback(async (newPoints: number) => {
+    if (user?.username) {
+      await saveUserScore(user.username, newPoints, levelMinPoints[levelIndex]);
+    }
+  }, [user?.username, levelIndex, levelMinPoints]);
 
   useEffect(() => {
     if (user?.username) {
       refetchReferrals();
       fetchLeaderboard();
+
+      // Load saved Wallet Address for active user
+      const savedWallet = localStorage.getItem(`wallet_address_${user.username}`);
+      if (savedWallet) {
+        setWalletAddress(savedWallet);
+      }
     }
   }, [user?.username]);
+
+  const handleConnectWalletAddress = (addr: string) => {
+    setWalletAddress(addr);
+    if (user?.username) {
+      localStorage.setItem(`wallet_address_${user.username}`, addr);
+    }
+  };
+
+  const handleDisconnectWalletAddress = () => {
+    setWalletAddress("");
+    if (user?.username) {
+      localStorage.removeItem(`wallet_address_${user.username}`);
+    }
+  };
 
   const fetchLeaderboard = async () => {
     if (!user?.username) return;
@@ -157,66 +209,86 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSwapClick = () => {
+    toast.info("🔄 Robinhood ETH Swap Protocol coming soon in V2!");
+  };
+
+  // Energy Restoration Timer - Exact +3 Energy per second
+  useEffect(() => {
+    const energyTimer = setInterval(() => {
+      setEnergy((prev) => Math.min(maxEnergy, prev + 3));
+    }, 1000);
+
+    return () => clearInterval(energyTimer);
+  }, []);
+
+  // Turbo Boost Timer
+  useEffect(() => {
+    if (!isBoostActive) return;
+    const timer = setInterval(() => {
+      setBoostTimeLeft((prev) => {
+        if (prev <= 1) {
+          setIsBoostActive(false);
+          toast.info("Turbo Boost 2x Multiplier expired.");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isBoostActive]);
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
         setIsLoading(true);
         const tg = (window as any).Telegram?.WebApp;
 
-        if (!tg || !tg.initDataUnsafe?.user) {
+        let activeUsername = "Guest_89LPR";
+        let activePhotoUrl = robinhood;
+
+        if (tg && tg.initDataUnsafe?.user) {
+          tg.expand();
+          activeUsername = tg.initDataUnsafe.user.username || "Guest_89LPR";
+          activePhotoUrl = tg.initDataUnsafe.user.photo_url || robinhood;
+
+          const startapp = tg.initDataUnsafe.start_param;
+          if (startapp) {
+            await setReferrer(activeUsername, startapp);
+          }
+        } else {
           let guestName = localStorage.getItem("guest_name");
           if (!guestName) {
-            guestName = "Guest_" + Math.random().toString(36).substring(2, 7).toUpperCase();
+            guestName = "Guest_89LPR";
             localStorage.setItem("guest_name", guestName);
           }
-          const mockUser = {
-            username: guestName,
-            photoUrl: logo,
-          };
-          setUser(mockUser);
-          try {
-            const savedScore = await getUserScore(mockUser.username);
-            if (savedScore) setPoints(savedScore.score);
-            else {
-              setPoints(1000);
-              await saveUserScore(mockUser.username, 1000, levelMinPoints[0]);
-            }
-          } catch (error) {
-            setPoints(1000);
-          }
-          setIsLoading(false);
-          return;
+          activeUsername = guestName;
         }
 
-        tg.expand();
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty("--vh", `${vh}px`);
-        window.addEventListener("resize", () => {
-          const vh = window.innerHeight * 0.01;
-          document.documentElement.style.setProperty("--vh", `${vh}px`);
-        });
+        setUser({ username: activeUsername, photoUrl: activePhotoUrl });
 
-        const telegramUser = {
-          username: tg.initDataUnsafe.user.username || "Anonymous",
-          photoUrl: tg.initDataUnsafe.user.photo_url || logo,
-        };
-        setUser(telegramUser);
-
-        const startapp = tg.initDataUnsafe.start_param;
-        if (startapp) {
-          await setReferrer(telegramUser.username, startapp);
-        }
-
+        // Load Firestore User Score & Real-time Offline Mining Profit
         try {
-          const savedScore = await getUserScore(telegramUser.username);
+          const savedScore = await getUserScore(activeUsername);
           if (savedScore) {
             setPoints(savedScore.score);
+            if (savedScore.lastUpdated) {
+              const lastSaveTime = new Date(savedScore.lastUpdated).getTime();
+              const nowTime = new Date().getTime();
+              const elapsedSeconds = Math.max(0, (nowTime - lastSaveTime) / 1000);
+              const offlineSecs = Math.min(10800, elapsedSeconds);
+              if (offlineSecs > 10) {
+                const offlineCoins = Math.floor(offlineSecs * (profitPerHour / 3600));
+                setBotEarnings(offlineCoins);
+                toast.info(`🤖 Auto Bot mined +${offlineCoins.toLocaleString()} ETH coins while you were offline!`);
+              }
+            }
           } else {
-            setPoints(1000);
-            await saveUserScore(telegramUser.username, 1000, levelMinPoints[0]);
+            setPoints(1380);
+            await saveUserScore(activeUsername, 1380, levelMinPoints[0]);
           }
         } catch (error) {
-          setPoints(1000);
+          setPoints(1380);
         }
       } catch (error) {
         console.error("Initialization error:", error);
@@ -227,20 +299,19 @@ const App: React.FC = () => {
     initializeApp();
   }, []);
 
+  // Passive Earnings Accumulation (+0.33 points per second) and Auto-Save every 30s
   useEffect(() => {
     if (!user?.username || isLoading) return;
 
-    // Points accumulation every second
     const profitInterval = setInterval(() => {
       setPoints((prev) => prev + profitPerHour / 3600);
     }, 1000);
 
-    // Auto-save every 1 minute (60,000 ms)
     const autoSaveInterval = setInterval(async () => {
       if (user?.username) {
         await saveUserScore(user.username, points, levelMinPoints[levelIndex]);
       }
-    }, 60000);
+    }, 30000);
 
     return () => {
       clearInterval(profitInterval);
@@ -271,25 +342,34 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // EXACT Point Scoring Handler - Anti-Inflation Formula!
   const handleCardClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+    if (energy <= 0) {
+      toast.warning("⚡ Energy depleted! Use Full Energy Refill or wait a moment.");
+      return;
+    }
+
+    setEnergy((prev) => Math.max(0, prev - 1));
+
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Shake effect
     setIsShaking(true);
     setTimeout(() => setIsShaking(false), 100);
 
-    // Hammer swing animation
     const hammerId = Date.now();
     setHammerAnimations(prev => [...prev, { id: hammerId, x, y }]);
     setTimeout(() => {
       setHammerAnimations(prev => prev.filter(h => h.id !== hammerId));
     }, 600);
 
-    // Random points per click: 15 to 30
-    const pointsToAdd = Math.floor(Math.random() * (30 - 15 + 1)) + 15;
+    // Balanced Anti-Inflation Level-based Tap Formula (Bronze: +2, Silver: +4, Gold: +6...)
+    const baseEarnPerTap = (levelIndex + 1) * 2;
+    const multiplier = isBoostActive ? 2 : 1;
+    const pointsToAdd = baseEarnPerTap * multiplier;
+    setLastTapEarned(pointsToAdd);
 
     const newCracks: CrackEffect[] = [];
     const timestamp = Date.now();
@@ -303,7 +383,12 @@ const App: React.FC = () => {
     setCrackEffects((prev) => [...prev.slice(-20), ...newCracks]);
     setEggHealth((prev) => Math.max(0, prev - (100 / CLICKS_TO_HATCH)));
     setEggClicks((prev) => prev + 1);
-    setClicks((prev) => [...prev, { id: Date.now(), x: e.pageX, y: e.pageY, amount: pointsToAdd }]);
+
+    const clickId = Date.now();
+    setClicks((prev) => [...prev, { id: clickId, x: e.clientX, y: e.clientY, amount: pointsToAdd }]);
+    setTimeout(() => {
+      setClicks((prev) => prev.filter((c) => c.id !== clickId));
+    }, 1000);
 
     if (eggClicks + 1 >= CLICKS_TO_HATCH) {
       setIsHatching(true);
@@ -317,7 +402,7 @@ const App: React.FC = () => {
       setBonusPoints({ amount: HATCH_BONUS, visible: true, x: rect.width / 2, y: rect.height / 2 });
 
       setTimeout(() => {
-        setEggHealth(100);
+        setEggHealth(92.7);
         setEggClicks(0);
         setIsHatching(false);
         setCrackEffects([]);
@@ -329,11 +414,10 @@ const App: React.FC = () => {
     const newPoints = points + pointsToAdd + (isHatching ? HATCH_BONUS : 0);
     setPoints(newPoints);
 
+    // Debounced Firestore Save (500ms)
     if (saveTimeout) clearTimeout(saveTimeout);
-    const timeout = setTimeout(async () => {
-      if (user?.username) {
-        await saveUserScore(user.username, newPoints, levelMinPoints[levelIndex]);
-      }
+    const timeout = setTimeout(() => {
+      persistScoreToDatabase(newPoints);
     }, 500);
     setSaveTimeout(timeout);
   };
@@ -345,64 +429,157 @@ const App: React.FC = () => {
     return `+${profit}`;
   };
 
-  const notify = () => toast("🕔 Coming Soon!");
+  // Helper for immediate Modal Claim Database Persistence
+  const handleModalClaim = (rewardAmount: number) => {
+    const updatedPoints = points + rewardAmount;
+    setPoints(updatedPoints);
+    persistScoreToDatabase(updatedPoints);
+  };
+
+  const isWalletConnected = Boolean(walletAddress);
+  const truncatedWallet = isWalletConnected
+    ? `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}`
+    : "";
+
+  // Guaranteed crisp Avatar image
+  const avatarSrc = user?.photoUrl && user.photoUrl !== logo ? user.photoUrl : robinhood;
 
   const renderHeader = () => (
-    <div className="px-4 z-10 pt-2 sm:pt-4">
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-[2px] rounded-full bg-gradient-to-r from-[#f3ba2f] to-[#ffcf4d] shadow-lg shadow-[#f3ba2f]/30 ring-2 ring-[#f3ba2f]/20">
-            <img src={user?.photoUrl || logo} alt="Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-[#050608] object-cover" />
+    <div className="space-y-3 z-10">
+      {/* Top Section: Avatar + Name + Wallet + X + Telegram + Settings + Profit Card */}
+      <div className="flex items-start justify-between gap-1 overflow-hidden">
+        {/* Left Side: Avatar, Name, Badge, XP Bar WITH CLICKABLE AVATAR FOR USER PROFILE MODAL */}
+        <div className="flex items-center space-x-2 shrink-0">
+          <div
+            onClick={() => setActiveModal("profile")}
+            className="relative shrink-0 cursor-pointer group transition-transform hover:scale-105"
+            title="Click to view Web3 Profile & Transaction History"
+          >
+            <div className="p-0.5 rounded-full bg-gradient-to-r from-[#00ff7b] to-[#00e5ff] shadow-[0_0_12px_rgba(0,255,123,0.6)] group-hover:shadow-[0_0_20px_#00ff7b]">
+              <img src={avatarSrc} alt="Avatar" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#060a12] object-contain bg-[#00ff7b]/10 p-0.5" />
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#00ff7b] border-2 border-[#060a12]"></div>
           </div>
-          <div>
-            <p className="text-xs sm:text-sm font-black tracking-tight text-white">{user?.username || "Anonymous"}</p>
+          <div className="shrink-0 cursor-pointer" onClick={() => setActiveModal("profile")}>
             <div className="flex items-center space-x-1">
-              <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-              <p className="text-[8px] sm:text-[10px] text-gray-400 font-bold">LEGENDARY PLAYER</p>
+              <p className="text-xs sm:text-sm font-black text-white tracking-tight truncate max-w-[85px] sm:max-w-[120px]">{user?.username || "Guest_89LPR"}</p>
+            </div>
+            <div className="flex items-center space-x-1 mt-0.5">
+              <span className="text-[10px]">🛡️</span>
+              <span className="text-[9px] sm:text-[10px] font-black text-[#ff8800] uppercase tracking-wider">{levelNames[levelIndex]}</span>
+            </div>
+            {/* Level XP Bar */}
+            <div className="w-28 sm:w-36 mt-1">
+              <div className="flex justify-between items-center text-[8px] font-bold mb-0.5">
+                <span className="text-[#00ff7b] font-black">Lv {levelIndex + 1}</span>
+              </div>
+              <div className="h-1.5 w-full bg-[#060a12] rounded-full overflow-hidden p-[1px] border border-[#00ff7b]/30">
+                <div
+                  className="h-full bg-gradient-to-r from-[#00ff7b] via-[#31ff00] to-[#00e5ff] rounded-full"
+                  style={{
+                    width: `${
+                      levelIndex >= levelNames.length - 1
+                        ? 100
+                        : Math.min(
+                            ((points - levelMinPoints[levelIndex]) /
+                              (levelMinPoints[levelIndex + 1] - levelMinPoints[levelIndex])) *
+                              100,
+                            100
+                          )
+                    }%`,
+                  }}
+                ></div>
+              </div>
+              <div className="text-[7px] sm:text-[8px] font-bold text-gray-400 text-right mt-0.5">
+                {Math.floor(points).toLocaleString()} / {levelMinPoints[levelIndex + 1] ? levelMinPoints[levelIndex + 1].toLocaleString() : "1000"} XP
+              </div>
             </div>
           </div>
         </div>
-        <button onClick={notify} className="p-2 sm:p-2.5 rounded-2xl glass-card hover:bg-[#f3ba2f]/10 transition-all border-[#f3ba2f]/20">
-          <Settings size={18} className="text-[#f3ba2f]" />
-        </button>
+
+        {/* Right Side: Dynamic Wallet Button, X, Telegram, Settings, Profit/Hour */}
+        <div className="flex flex-col items-end space-y-1.5 shrink-0 ml-1">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setActiveModal("wallet")}
+              className={`flex items-center space-x-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl bg-[#0a1424] border transition-all text-[10px] sm:text-xs text-white font-bold shrink-0 ${
+                isWalletConnected
+                  ? "border-[#00ff7b] shadow-[0_0_12px_rgba(0,255,123,0.3)]"
+                  : "border-[#00e5ff]/40 hover:border-[#00e5ff] shadow-[0_0_12px_rgba(0,229,255,0.2)]"
+              }`}
+            >
+              {isWalletConnected ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00ff7b] animate-ping"></span>
+                  <span className="font-mono text-[#00ff7b] text-[10px] sm:text-[11px]">{truncatedWallet}</span>
+                </>
+              ) : (
+                <>
+                  <span>💳</span>
+                  <span>Connect</span>
+                </>
+              )}
+              <span className="text-gray-400 text-[9px]">›</span>
+            </button>
+
+            {/* X / Twitter Social Button */}
+            <button
+              onClick={() => window.open("https://x.com/EggRushRH", "_blank")}
+              className="p-1 sm:p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00ff7b]/20 hover:scale-105 transition-all border border-[#00ff7b]/40 text-[#00ff7b] shadow-[0_0_10px_rgba(0,255,123,0.2)] shrink-0"
+              title="Follow EggRush on X"
+            >
+              <XIcon size={14} />
+            </button>
+
+            {/* Telegram Social Button */}
+            <button
+              onClick={() => window.open("https://t.me/EggRush_RobinHood", "_blank")}
+              className="p-1 sm:p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00e5ff]/20 hover:scale-105 transition-all border border-[#00e5ff]/40 text-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.2)] shrink-0"
+              title="Join Telegram Community"
+            >
+              <TelegramIcon size={14} />
+            </button>
+
+            {/* Settings Button */}
+            <button
+              onClick={() => setActiveModal("settings")}
+              className="p-1 sm:p-1.5 rounded-xl bg-[#0a1424] hover:bg-[#00ff7b]/15 transition-all border border-[#00ff7b]/30 shrink-0"
+            >
+              <Settings size={14} className="text-[#00ff7b]" />
+            </button>
+          </div>
+
+          {/* Profit Card */}
+          <div onClick={() => setActiveModal("autobot")} className="bg-[#0a1424] p-1.5 sm:p-2 rounded-xl border border-white/10 flex items-center space-x-1.5 cursor-pointer hover:border-[#00ff7b]/50 transition-all shrink-0">
+            <img src={robinhood} alt="Robinhood" className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-lg border border-[#ffe600]/40 p-0.5 bg-[#ffe600]/10" />
+            <div className="text-right">
+              <p className="text-[6px] sm:text-[7px] text-gray-400 font-bold uppercase tracking-wider">PROFIT / HOUR</p>
+              <p className="text-[10px] sm:text-xs font-black text-[#ffe600] yellow-glow">{formatProfitPerHour(profitPerHour)} <Info size={8} className="inline text-gray-400" /></p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        <div className="glass-card p-3 sm:p-4 rounded-2xl sm:rounded-[24px] premium-shadow border-[#f3ba2f]/10">
-          <div className="flex justify-between items-end mb-1 sm:mb-2">
-            <p className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-[#f3ba2f] gold-glow">
-              {levelNames[levelIndex]}
-            </p>
-            <p className="text-[9px] sm:text-[11px] font-black text-white/40">
-              {levelIndex + 1}<span className="text-[#95908a]">/{levelNames.length}</span>
-            </p>
+      {/* FULL WIDTH ETH BALANCE CARD (MATCHING MOCKUP) */}
+      <div className="bg-[#071320]/90 backdrop-blur-md p-3.5 rounded-2xl border border-[#00e5ff]/40 shadow-[0_0_25px_rgba(0,229,255,0.15)] flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-full bg-[#00e5ff]/20 border border-[#00e5ff] flex items-center justify-center shadow-[0_0_12px_#00e5ff]">
+            <ETHIcon size={22} />
           </div>
-          <div className="h-2 sm:h-2.5 w-full bg-black/60 rounded-full overflow-hidden p-[1px] border border-white/5 shadow-inner">
-            <div
-              className="progress-gradient h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(243,186,47,0.5)]"
-              style={{ width: `${levelIndex >= levelNames.length - 1 ? 100 : Math.min(((points - levelMinPoints[levelIndex]) / (levelMinPoints[levelIndex + 1] - levelMinPoints[levelIndex])) * 100, 100)}%` }}
-            ></div>
+          <div>
+            <p className="text-[9px] text-[#00e5ff] uppercase tracking-widest font-black">ETH BALANCE</p>
+            <p className="text-2xl font-black text-white tracking-tight">{Math.floor(points).toLocaleString()}</p>
           </div>
         </div>
-
-        <div onClick={notify} className="glass-card p-3 sm:p-4 rounded-2xl sm:rounded-[24px] premium-shadow border-[#f3ba2f]/10 flex items-center space-x-2 sm:space-x-3 cursor-pointer group hover:bg-[#f3ba2f]/5 transition-all">
-          <div className="bg-gradient-to-br from-[#f3ba2f]/20 to-[#ffcf4d]/10 p-1 rounded-lg sm:rounded-xl shadow-lg shadow-[#f3ba2f]/10 group-hover:rotate-12 transition-transform overflow-hidden">
-            <img src={binanceLogo} alt="Binance" className="w-6 h-6 sm:w-8 sm:h-8 object-contain rounded-full" />
-          </div>
-          <div className="flex-1">
-            <p className="text-[8px] sm:text-[10px] text-[#85827d] font-black uppercase tracking-widest">Profit / hour</p>
-            <div className="flex items-center space-x-1">
-              <p className="text-[11px] sm:text-sm font-black text-white">{formatProfitPerHour(profitPerHour)}</p>
-              <Info size={12} className="text-[#85827d]" />
-            </div>
-          </div>
+        <div className="bg-[#00ff7b]/10 border border-[#00ff7b]/40 text-[#00ff7b] text-[10px] font-black px-2.5 py-1 rounded-xl shadow-[0_0_10px_rgba(0,255,123,0.2)]">
+          +{lastTapEarned} <span className="text-[8px] text-gray-400 block font-normal">Last tap</span>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="flex justify-center min-h-screen relative overflow-hidden bg-transparent">
+    <div className="flex justify-center h-screen max-h-screen relative overflow-hidden bg-[#060a12] font-orbitron">
       {/* Background Image Layer */}
       <div className="app-bg-container" style={{ backgroundImage: `url(${bg})` }}></div>
       <div className="aurora-1"></div>
@@ -410,170 +587,334 @@ const App: React.FC = () => {
 
       <ToastContainer theme="dark" position="top-center" />
 
+      {/* Interactive Modals System */}
+      <UserProfileModal
+        isOpen={activeModal === "profile"}
+        onClose={() => setActiveModal(null)}
+        user={user}
+        userPoints={points}
+        walletAddress={walletAddress}
+        levelName={levelNames[levelIndex]}
+        levelIndex={levelIndex}
+        profitPerHour={profitPerHour}
+      />
+      <WalletModal
+        isOpen={activeModal === "wallet"}
+        onClose={() => setActiveModal(null)}
+        userPoints={points}
+        walletAddress={walletAddress}
+        onConnectWallet={handleConnectWalletAddress}
+        onDisconnectWallet={handleDisconnectWalletAddress}
+      />
+      <SettingsModal isOpen={activeModal === "settings"} onClose={() => setActiveModal(null)} />
+      <DailyRewardModal
+        isOpen={activeModal === "reward"}
+        onClose={() => setActiveModal(null)}
+        onClaim={handleModalClaim}
+        username={user?.username}
+      />
+      <DailyCipherModal
+        isOpen={activeModal === "cipher"}
+        onClose={() => setActiveModal(null)}
+        onSuccess={handleModalClaim}
+        username={user?.username}
+      />
+      <DailyComboModal
+        isOpen={activeModal === "combo"}
+        onClose={() => setActiveModal(null)}
+        onSuccess={handleModalClaim}
+        username={user?.username}
+      />
+      <BoostModal
+        isOpen={activeModal === "boost"}
+        onClose={() => setActiveModal(null)}
+        onFullEnergy={() => setEnergy(maxEnergy)}
+        onTurboBoost={() => {
+          setIsBoostActive(true);
+          setBoostTimeLeft(30);
+        }}
+        username={user?.username}
+      />
+      <AutoBotModal
+        isOpen={activeModal === "autobot"}
+        onClose={() => setActiveModal(null)}
+        botEarnings={botEarnings}
+        onCollect={() => {
+          handleModalClaim(botEarnings);
+          setBotEarnings(0);
+        }}
+      />
+
       {isLoading ? (
-        <div className="w-full h-screen flex items-center justify-center text-white z-50 bg-[#050608]">
-          <div className="w-14 h-14 border-4 border-[#f3ba2f]/10 border-t-[#f3ba2f] rounded-full animate-spin"></div>
+        <div className="w-full h-screen flex items-center justify-center text-[#f0eeff] z-50 bg-[#060a12]">
+          <div className="w-12 h-12 border-4 border-[#00ff7b]/20 border-t-[#00ff7b] rounded-full animate-spin shadow-[0_0_20px_#00ff7b]"></div>
         </div>
       ) : (
-        <div className="w-full text-white h-screen font-bold flex flex-col max-w-xl relative z-10 overflow-hidden">
+        <div className="w-full text-[#f0eeff] h-screen max-h-screen font-bold flex flex-col justify-between max-w-md mx-auto relative z-10 overflow-hidden p-3 pb-24">
           {activeTab === "main" ? (
-            <>
+            <div className="flex-1 flex flex-col justify-between overflow-y-auto space-y-3">
+              
+              {/* TẦNG 1: TOP HUD & ETH BALANCE CARD */}
               {renderHeader()}
-              <div className="flex-grow mt-4 sm:mt-6 bg-gradient-to-b from-transparent to-[#050608]/90 rounded-t-[40px] sm:rounded-t-[50px] relative top-glow-premium border-t border-white/10 overflow-hidden">
-                <div className="px-4 mt-4 sm:mt-8 grid grid-cols-3 gap-2 sm:gap-3">
-                  {[
-                    { img: dailyReward, label: "Reward", time: dailyRewardTimeLeft },
-                    { img: dailyCipher, label: "Cipher", time: dailyCipherTimeLeft },
-                    { img: dailyCombo, label: "Combo", time: dailyComboTimeLeft }
-                  ].map((item, idx) => (
-                    <div
-                      key={idx}
-                      onClick={notify}
-                      className="glass-card rounded-xl sm:rounded-[22px] p-2 sm:p-4 relative group cursor-pointer hover:border-[#f3ba2f]/40 transition-all"
-                    >
-                      <div className="absolute -top-1 -right-1 bg-red-500 text-[6px] sm:text-[8px] px-2 py-0.5 rounded-full text-white font-black animate-pulse z-20 shadow-[0_0_10px_rgba(239,68,68,0.5)] border border-red-400/30">SOON</div>
 
-                      <div className="absolute inset-0 bg-gradient-to-b from-[#f3ba2f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-[22px]"></div>
-                      <img src={item.img} alt={item.label} className="mx-auto w-8 h-8 sm:w-11 sm:h-11 group-hover:scale-110 transition-transform" />
-                      <p className="text-[7px] sm:text-[10px] text-center text-white/50 mt-1 sm:mt-3 font-black uppercase tracking-widest">{item.label}</p>
-                      <p className="text-[7px] sm:text-[10px] font-black text-center text-[#f3ba2f] mt-0.5 sm:mt-1">{item.time}</p>
+              {/* TẦNG 2: CENTRAL HERO EGG STAGE WITH SVG VECTOR HUD REACTOR RING */}
+              <div className="flex-1 flex flex-col items-center justify-center relative my-auto py-1">
+                
+                <HeroReactorRing eggHealth={eggHealth}>
+                  {/* HERO CHARACTER - LARGER EGG FOR BETTER IMPACT */}
+                  <div className="egg-container" style={{ cursor: `url(${hammer}) 16 16, pointer` }}>
+                    <div className={`w-60 h-60 sm:w-72 sm:h-72 p-3 rounded-full flex items-center justify-center relative overflow-hidden group shadow-[0_0_90px_rgba(0,255,123,0.5)] ${isShaking ? "animate-egg-shake" : ""}`} onClick={handleCardClick}>
+                      <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-[98%] h-[98%] object-contain drop-shadow-[0_15px_45px_rgba(0,255,123,0.65)] transition-transform duration-500 group-hover:scale-105" />
+
+                      {/* Impact Ripples */}
+                      {hammerAnimations.map(h => (
+                        <div key={`ripple-${h.id}`} className="absolute impact-ripple" style={{ left: h.x, top: h.y }}></div>
+                      ))}
+
+                      {/* Hammer Visual */}
+                      {hammerAnimations.map(h => (
+                        <img
+                          key={`hammer-${h.id}`}
+                          src={hammer}
+                          alt="Hammer"
+                          className="absolute w-12 h-12 pointer-events-none z-50 animate-hammer-strike"
+                          style={{ left: h.x - 24, top: h.y - 36 }}
+                        />
+                      ))}
                     </div>
-                  ))}
+
+                    {crackEffects.map((crack) => (
+                      <div key={crack.id} className="crack-line" style={{ left: `${crack.x}px`, top: `${crack.y}px`, transform: `rotate(${crack.angle}deg)`, "--crack-length": `${crack.length}px`, opacity: 0.8 } as React.CSSProperties} />
+                    ))}
+                    {sparkles.map((sparkle) => (
+                      <div key={sparkle.id} className="sparkle" style={{ "--tx": `${Math.cos(sparkle.angle) * 120}px`, "--ty": `${Math.sin(sparkle.angle) * 120}px`, left: `${sparkle.x}px`, top: `${sparkle.y}px` } as React.CSSProperties} />
+                    ))}
+                    {bonusPoints && bonusPoints.visible && (
+                      <div className="bonus-points" style={{ left: `${bonusPoints.x}px`, top: `${bonusPoints.y}px` }}>+{bonusPoints.amount}</div>
+                    )}
+                  </div>
+                </HeroReactorRing>
+
+                {/* TAP CORE TEXT & ETH MINING SUBTITLE */}
+                <div className="z-20 text-center mt-1">
+                  <p className="text-base font-black text-[#00ff7b] tracking-wider uppercase neon-green-glow leading-none">TAP CORE</p>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">Tap to mine Robinhood</p>
                 </div>
 
-                <div className="px-4 mt-6 sm:mt-10 flex justify-center flex-col items-center">
-                  <div className="flex items-center space-x-3 sm:space-x-4 bg-white/5 px-6 sm:px-8 py-2.5 sm:py-4 rounded-[24px] sm:rounded-[32px] border border-white/10 shadow-3xl premium-shadow backdrop-blur-md">
-                    <img src={dollarCoin} alt="Dollar" className="w-8 h-8 sm:w-12 sm:h-12 drop-shadow-[0_0_20px_rgba(243,186,47,0.6)] rounded-full" />
-                    <p className="text-3xl sm:text-5xl text-white font-black tracking-tighter">{Math.floor(points).toLocaleString()}</p>
+              </div>
+
+              {/* TẦNG 3: CONTROL BUTTONS ROW (BOOST - ENERGY - AUTO BOT) */}
+              <div className="grid grid-cols-3 gap-2">
+                {/* BOOST CARD */}
+                <div
+                  onClick={() => setActiveModal("boost")}
+                  className="bg-[#0a1424] hover:bg-[#00ff7b]/10 p-2.5 rounded-2xl border border-[#ffe600]/40 cursor-pointer transition-all flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-base">⚡</span>
+                    <span className="text-xs font-black text-[#ffe600]">BOOST</span>
+                    <span className="text-[10px] text-gray-400">›</span>
+                  </div>
+                  <p className="text-[9px] text-gray-400 font-bold mt-1">Turbo x2</p>
+                  <div className="bg-[#ffe600]/10 border border-[#ffe600]/30 text-[#ffe600] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 text-center">
+                    ⏱ {isBoostActive ? `${boostTimeLeft}s` : "23:45"}
                   </div>
                 </div>
 
-                <div className="px-4 mt-6 sm:mt-12 flex justify-center relative scale-90 sm:scale-100">
-                  <div className="egg-aura absolute w-[250px] h-[250px] sm:w-[300px] sm:h-[300px] rounded-full"></div>
-                  <div className="relative z-10">
-                    <div className="egg-container" style={{ cursor: `url(${hammer}) 16 16, pointer` }}>
-                      <div className="absolute top-[-40px] left-1/2 -translate-x-1/2 w-48 sm:w-56 px-4">
-                        <div className="h-1.5 sm:h-2 w-full bg-black/60 rounded-full overflow-hidden p-[1px] border border-white/10 shadow-inner">
-                          <div className="h-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-full transition-all duration-300" style={{ width: `${eggHealth}%` }} />
-                        </div>
-                        <p className="text-[8px] sm:text-[10px] text-center mt-1 text-white/40 tracking-[0.3em] font-black uppercase">Egg Integrity</p>
-                      </div>
+                {/* ENERGY CARD WITH SEGMENTED BLOCKS */}
+                <div className="bg-[#0a1424] p-2.5 rounded-2xl border border-[#00e5ff]/40 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base">🔋</span>
+                    <span className="text-xs font-black text-[#00e5ff]">ENERGY</span>
+                    <span className="text-[10px] text-gray-400">›</span>
+                  </div>
+                  <p className="text-[9px] font-bold text-white mt-1">{energy} / {maxEnergy}</p>
+                  {/* Energy Segmented Cyan Blocks */}
+                  <div className="flex space-x-1 mt-1">
+                    {Array.from({ length: 8 }).map((_, i) => {
+                      const isActive = i < Math.ceil((energy / maxEnergy) * 8);
+                      return (
+                        <div
+                          key={i}
+                          className={`h-1.5 flex-1 rounded-sm transition-all ${
+                            isActive
+                              ? "bg-[#00e5ff] shadow-[0_0_6px_#00e5ff]"
+                              : "bg-[#060a12] border border-[#00e5ff]/20"
+                          }`}
+                        ></div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                      <div className={`w-80 h-80 sm:w-[450px] sm:h-[450px] p-8 sm:p-12 rounded-full glass-card flex items-center justify-center relative overflow-hidden group shadow-[0_0_80px_rgba(0,0,0,0.6)] ${isShaking ? "animate-egg-shake" : ""}`} onClick={handleCardClick}>
-                        <div className="absolute inset-0 bg-radial-gradient from-[#f3ba2f]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="w-full h-full rounded-full flex items-center justify-center relative">
-                          <img src={isHatching ? hatchedEgg : egg} alt="Egg" className="w-[95%] h-[95%] object-contain drop-shadow-[0_40px_80px_rgba(0,0,0,0.9)] transition-transform duration-500 group-hover:scale-105" />
-
-                          {/* Impact Ripples */}
-                          {hammerAnimations.map(h => (
-                            <div key={`ripple-${h.id}`} className="absolute impact-ripple" style={{ left: h.x, top: h.y }}></div>
-                          ))}
-
-                          {/* Hammer Swing Visual */}
-                          {hammerAnimations.map(h => (
-                            <img
-                              key={`hammer-${h.id}`}
-                              src={hammer}
-                              alt="Hammer"
-                              className="absolute w-16 h-16 pointer-events-none z-50 animate-hammer-strike"
-                              style={{ left: h.x - 32, top: h.y - 48 }}
-                            />
-                          ))}
-
-                          {/* Tap Instruction Animation */}
-                          {!isHatching && eggClicks < 5 && (
-                            <div className="absolute bottom-10 right-10 animate-bounce pointer-events-none">
-                              <svg className="w-8 h-8 text-[#f3ba2f] drop-shadow-glow" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12,2C10.89,2 10,2.89 10,4V11L8.38,10.19C7.39,9.69 6.18,10.09 5.68,11.08L4.08,14.28C3.89,14.65 3.86,15.08 4,15.47L6,21H18V13H16V21H14V4C14,2.89 13.11,2 12,2Z" />
-                              </svg>
-                              <div className="bg-[#f3ba2f] text-black text-[8px] px-2 py-0.5 rounded-full font-black -mt-1">TAP!</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {crackEffects.map((crack) => (
-                        <div key={crack.id} className="crack-line" style={{ left: `${crack.x}px`, top: `${crack.y}px`, transform: `rotate(${crack.angle}deg)`, "--crack-length": `${crack.length}px`, opacity: 0.8 } as React.CSSProperties} />
-                      ))}
-                      {sparkles.map((sparkle) => (
-                        <div key={sparkle.id} className="sparkle" style={{ "--tx": `${Math.cos(sparkle.angle) * 120}px`, "--ty": `${Math.sin(sparkle.angle) * 120}px`, left: `${sparkle.x}px`, top: `${sparkle.y}px` } as React.CSSProperties} />
-                      ))}
-                      {bonusPoints && bonusPoints.visible && (
-                        <div className="bonus-points" style={{ left: `${bonusPoints.x}px`, top: `${bonusPoints.y}px` }}>+{bonusPoints.amount}</div>
-                      )}
-                    </div>
+                {/* AUTO BOT CARD */}
+                <div
+                  onClick={() => setActiveModal("autobot")}
+                  className="bg-[#0a1424] hover:bg-[#00e5ff]/10 p-2.5 rounded-2xl border border-[#ab00ff]/40 cursor-pointer transition-all flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-base">🤖</span>
+                    <span className="text-xs font-black text-[#ab00ff]">AUTO BOT</span>
+                    <span className="text-[10px] text-gray-400">›</span>
+                  </div>
+                  <p className="text-[9px] text-gray-400 font-bold mt-1">Offline Collect</p>
+                  <div className="bg-[#ab00ff]/10 border border-[#ab00ff]/30 text-[#ab00ff] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 text-center">
+                    ⏱ 6h 30m
                   </div>
                 </div>
               </div>
-            </>
+
+              {/* TẦNG 4: DAILY QUEST CARDS (REWARD - CIPHER - COMBO WITH NEXT IN & ARROW) */}
+              <div className="grid grid-cols-3 gap-2">
+                {/* DAILY REWARD */}
+                <div
+                  onClick={() => setActiveModal("reward")}
+                  className="bg-[#0a1424] hover:bg-[#00ff7b]/10 p-2.5 rounded-2xl border border-[#00ff7b]/40 cursor-pointer transition-all flex flex-col items-center justify-between relative group"
+                >
+                  <span className="absolute top-2 right-2 text-gray-400 text-[10px]">›</span>
+                  <span className="text-2xl mb-1">🎁</span>
+                  <p className="text-[9px] font-black text-[#00ff7b] uppercase">DAILY REWARD</p>
+                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">Next in</p>
+                  <div className="bg-[#00ff7b]/10 border border-[#00ff7b]/30 text-[#00ff7b] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center">
+                    {dailyRewardTimeLeft}
+                  </div>
+                </div>
+
+                {/* CIPHER */}
+                <div
+                  onClick={() => setActiveModal("cipher")}
+                  className="bg-[#0a1424] hover:bg-[#00e5ff]/10 p-2.5 rounded-2xl border border-[#00e5ff]/40 cursor-pointer transition-all flex flex-col items-center justify-between relative group"
+                >
+                  <span className="absolute top-2 right-2 text-gray-400 text-[10px]">›</span>
+                  <span className="text-2xl mb-1">🔐</span>
+                  <p className="text-[9px] font-black text-[#00e5ff] uppercase">CIPHER</p>
+                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">Next in</p>
+                  <div className="bg-[#00e5ff]/10 border border-[#00e5ff]/30 text-[#00e5ff] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center">
+                    {dailyCipherTimeLeft}
+                  </div>
+                </div>
+
+                {/* COMBO */}
+                <div
+                  onClick={() => setActiveModal("combo")}
+                  className="bg-[#0a1424] hover:bg-[#ffe600]/10 p-2.5 rounded-2xl border border-[#ffe600]/40 cursor-pointer transition-all flex flex-col items-center justify-between relative group"
+                >
+                  <span className="absolute top-2 right-2 text-gray-400 text-[10px]">›</span>
+                  <span className="text-2xl mb-1">🎟️</span>
+                  <p className="text-[9px] font-black text-[#ffe600] uppercase">COMBO</p>
+                  <p className="text-[7px] text-gray-400 font-bold mt-0.5">Next in</p>
+                  <div className="bg-[#ffe600]/10 border border-[#ffe600]/30 text-[#ffe600] text-[9px] font-black px-2 py-0.5 rounded-lg mt-1 w-full text-center">
+                    {dailyComboTimeLeft}
+                  </div>
+                </div>
+              </div>
+
+            </div>
           ) : activeTab === "leaderboard" ? (
-            <>
+            <div className="flex-1 flex flex-col overflow-y-auto">
               {renderHeader()}
-              <div className="flex-grow mt-6 bg-gradient-to-b from-transparent to-[#050608]/90 rounded-t-[40px] relative top-glow-premium border-t border-white/10 overflow-hidden">
-                <div className="px-4 pt-10 flex-1 overflow-auto relative">
+              <div className="flex-grow mt-3 bg-gradient-to-b from-transparent via-[#060a12]/90 to-[#060a12] rounded-t-[30px] relative top-glow-premium border-t border-[#00ff7b]/30 overflow-hidden">
+                <div className="px-3 pt-4 flex-1 overflow-auto relative">
                   <Leaderboard users={leaderboard} currentUser={user?.username} isLoading={isLeaderboardLoading} />
                 </div>
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <div className="px-6 z-10 pt-8 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="p-1 rounded-full bg-gradient-to-tr from-[#f3ba2f] to-transparent">
-                    <img src={user?.photoUrl || logo} alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-[#050608]" />
+            <div className="flex-1 flex flex-col overflow-y-auto">
+              <div className="px-4 z-10 pt-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-1 rounded-full bg-gradient-to-tr from-[#00ff7b] to-[#00e5ff] shadow-[0_0_12px_rgba(0,255,123,0.4)]">
+                    <img src={avatarSrc} alt="Avatar" className="w-10 h-10 rounded-full object-contain border-2 border-[#060a12] bg-[#00ff7b]/10 p-0.5" />
                   </div>
                   <div>
-                    <p className="text-xl font-black text-white tracking-tight leading-none">{user?.username || "Anonymous"}</p>
-                    <p className="text-xs text-[#f3ba2f] font-black uppercase mt-1 tracking-widest">Affiliate Master</p>
+                    <p className="text-base font-black text-[#f0eeff] tracking-tight leading-none">{user?.username || "Guest_89LPR"}</p>
+                    <p className="text-[9px] text-[#00ff7b] font-black uppercase mt-1 tracking-wider neon-green-glow">Robinhood ETH Master</p>
                   </div>
                 </div>
               </div>
-              <div className="flex-grow mt-8 bg-gradient-to-b from-transparent to-[#050608]/90 rounded-t-[50px] relative top-glow-premium border-t border-white/10 overflow-hidden">
-                <div className="px-4 pt-10 flex-1 overflow-auto relative">
+              <div className="flex-grow mt-4 bg-gradient-to-b from-transparent via-[#060a12]/90 to-[#060a12] rounded-t-[30px] relative top-glow-premium border-t border-[#060a12] overflow-hidden">
+                <div className="px-3 pt-4 flex-1 overflow-auto relative">
                   {isReferralLoading ? (
-                    <div className="flex justify-center items-center h-40"><div className="w-10 h-10 border-4 border-[#f3ba2f]/10 border-t-[#f3ba2f] rounded-full animate-spin"></div></div>
+                    <div className="flex justify-center items-center h-40"><div className="w-8 h-8 border-4 border-[#00ff7b]/20 border-t-[#00ff7b] rounded-full animate-spin"></div></div>
                   ) : (
                     <Referral users={referrals} currentUser={user?.username} />
                   )}
                 </div>
               </div>
-            </>
+            </div>
           )}
 
-          <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2.5rem)] max-w-xl glass-card flex justify-around items-center z-50 rounded-[25px] sm:rounded-[35px] p-1.5 sm:p-2.5 premium-shadow border-white/10 ring-1 ring-white/5">
-            {[
-              { id: "main", icon: Mine, label: "Mine" },
-              { id: "swap", icon: Swap, label: "Swap", disabled: true },
-              { id: "leaderboard", icon: RankingIcon, label: "Ranking" },
-              { id: "referral", icon: Friends, label: "Friends" },
-              { id: "claim", icon: Hamster, label: "Claim", disabled: true }
-            ].map((tab) => (
-              <div
-                key={tab.id}
-                onClick={() => !tab.disabled && handleTabChange(tab.id as any)}
-                className={`text-center flex-1 py-2 sm:py-3.5 rounded-xl sm:rounded-[22px] transition-all duration-500 cursor-pointer relative group ${activeTab === tab.id
-                  ? "bg-gradient-to-b from-[#f3ba2f]/20 to-[#f3ba2f]/5 text-[#f3ba2f] shadow-lg shadow-[#f3ba2f]/10"
-                  : "text-gray-500 hover:text-white/80"
-                  }`}
-              >
-                <div className={`relative inline-block ${tab.disabled ? "opacity-30 grayscale" : ""}`}>
-                  <tab.icon className={`w-5 h-5 sm:w-6 sm:h-6 mx-auto transition-transform duration-300 ${activeTab === tab.id ? "scale-110" : "group-hover:scale-110"}`} />
-                </div>
-                <p className={`text-[7px] sm:text-[9px] mt-1 sm:mt-2 font-black uppercase tracking-[0.1em] ${tab.disabled ? "opacity-30 grayscale" : ""}`}>{tab.label}</p>
-
-                {tab.disabled && (
-                  <div className="absolute -top-1 -right-4 bg-red-500 text-[6px] sm:text-[8px] px-2 py-0.5 rounded-full text-white font-black animate-pulse z-20 shadow-[0_0_10px_rgba(239,68,68,0.5)] border border-red-400/30">SOON</div>
-                )}
-
-                {activeTab === tab.id && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-[#f3ba2f] rounded-full shadow-[0_0_10px_#f3ba2f]"></div>}
+          {/* TẦNG 5: FLOATING NAVIGATION TASKBAR WITH ETH LOGO */}
+          <div className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md bg-[#0a1424]/95 backdrop-blur-md rounded-full p-2 flex justify-around items-center z-50 border border-[#00ff7b]/40 shadow-[0_0_20px_rgba(0,255,123,0.2)]">
+            {/* MINE TAB WITH ETH ICON */}
+            <div
+              onClick={() => handleTabChange("main")}
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all ${
+                activeTab === "main" ? "text-[#00ff7b]" : "text-gray-400"
+              }`}
+            >
+              <div className="w-8 h-8 rounded-full bg-[#00ff7b]/20 border border-[#00ff7b] flex items-center justify-center shadow-[0_0_10px_#00ff7b]">
+                <ETHIcon size={16} />
               </div>
-            ))}
+              <span className="text-[8px] font-black uppercase mt-0.5">MINE</span>
+              {activeTab === "main" && <div className="w-1 h-1 bg-[#00ff7b] rounded-full mt-0.5 shadow-[0_0_6px_#00ff7b]"></div>}
+            </div>
+
+            {/* SWAP TAB */}
+            <div
+              onClick={handleSwapClick}
+              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#00e5ff] transition-all relative"
+            >
+              <div className="flex items-center">
+                <Swap size={18} className="text-gray-400 hover:text-[#00e5ff]" />
+              </div>
+              <div className="flex items-center space-x-1 mt-1">
+                <span className="text-[8px] font-black uppercase">SWAP</span>
+                <span className="text-[6px] text-[#ffe600] font-black bg-[#ffe600]/10 px-1 rounded border border-[#ffe600]/30">SOON</span>
+              </div>
+            </div>
+
+            {/* RANKING TAB */}
+            <div
+              onClick={() => handleTabChange("leaderboard")}
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all ${
+                activeTab === "leaderboard" ? "text-[#00ff7b]" : "text-gray-400"
+              }`}
+            >
+              <RankingIcon size={18} className={activeTab === "leaderboard" ? "text-[#00ff7b]" : "text-gray-400"} />
+              <span className="text-[8px] font-black uppercase mt-1">RANKING</span>
+            </div>
+
+            {/* FRIENDS TAB */}
+            <div
+              onClick={() => handleTabChange("referral")}
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all ${
+                activeTab === "referral" ? "text-[#00ff7b]" : "text-gray-400"
+              }`}
+            >
+              <Friends size={18} className={activeTab === "referral" ? "text-[#00ff7b]" : "text-gray-400"} />
+              <span className="text-[8px] font-black uppercase mt-1">FRIENDS</span>
+            </div>
+
+            {/* CLAIM TAB */}
+            <div
+              onClick={() => toast.info("🎟️ Airdrop Token Claim Protocol coming soon on Robinhood EVM Mainnet (SOON)!")}
+              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#00ff7b] transition-all relative"
+            >
+              <span className="absolute -top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+              <Hamster size={18} className="text-gray-400 hover:text-[#00ff7b]" />
+              <div className="flex items-center space-x-1 mt-1">
+                <span className="text-[8px] font-black uppercase">CLAIM</span>
+                <span className="text-[6px] text-[#00ff7b] font-black bg-[#00ff7b]/10 px-1 rounded border border-[#00ff7b]/30">SOON</span>
+              </div>
+            </div>
           </div>
+
         </div>
       )}
 
       {clicks.map((click) => (
-        <div key={click.id} className="absolute text-5xl font-black text-white pointer-events-none gold-glow z-[100] italic" style={{ top: `${click.y - 50}px`, left: `${click.x - 30}px`, animation: `float-up-fast 1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards` }}>{click.amount}</div>
+        <div key={click.id} className="fixed text-4xl sm:text-5xl font-[#00ff7b] pointer-events-none neon-green-glow z-[100] italic" style={{ top: `${click.y - 40}px`, left: `${click.x - 20}px`, animation: `float-up-fast 1s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards` }}>+{click.amount}</div>
       ))}
     </div>
   );

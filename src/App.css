@@ -66,7 +66,7 @@
 .setBg {
   background-image: url("/bg.png");
 }
-// Thêm vào file CSS của bạn
+/* Thêm vào file CSS của bạn */
 .hatching {
   animation: hatch 1.5s ease-in-out;
 }

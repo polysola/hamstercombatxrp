@@ -1,13 +1,21 @@
+import React from "react";
 import { IconProps } from "../utils/types";
 
-
 const Info: React.FC<IconProps> = ({ size = 24, className = "" }) => {
-
-    const svgSize = `${size}px`;
-
-    return (
-        <svg fill="currentColor" className={className} height={svgSize} width={svgSize} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm1,15a1,1,0,0,1-2,0V11a1,1,0,0,1,2,0ZM12,8a1.5,1.5,0,1,1,1.5-1.5A1.5,1.5,0,0,1,12,8Z"></path></g></svg>
-    );
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" stroke="#00ff7b" strokeWidth="2" />
+      <path d="M12 16v-4" stroke="#31ff00" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="8" r="1.25" fill="#ffe600" />
+    </svg>
+  );
 };
 
 export default Info;
