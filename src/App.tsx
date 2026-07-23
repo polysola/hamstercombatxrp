@@ -1090,65 +1090,78 @@ const App: React.FC = () => {
 
           {/* TẦNG 5: FLOATING NAVIGATION TASKBAR WITH ETH LOGO */}
           <div className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md bg-[#0a1424]/95 backdrop-blur-md rounded-full p-2 flex justify-around items-center z-50 border border-[#00ff7b]/40 shadow-[0_0_20px_rgba(0,255,123,0.2)]">
-            {/* MINE TAB WITH ETH ICON */}
+            {/* HOME TAB */}
             <div
               onClick={() => handleTabChange("main")}
-              className={`flex flex-col items-center justify-center cursor-pointer transition-all ${
-                activeTab === "main" ? "text-[#00ff7b]" : "text-gray-400"
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all group ${
+                activeTab === "main" ? "text-[#00ff7b]" : "text-gray-400 hover:text-white"
               }`}
             >
-              <div className="w-8 h-8 rounded-full bg-[#00ff7b]/20 border border-[#00ff7b] flex items-center justify-center shadow-[0_0_10px_#00ff7b]">
-                <img src={robinhood} alt="Robinhood" className="w-5 h-5 object-contain" />
+              <div className="w-5 h-5 flex items-center justify-center">
+                <img
+                  src={robinhood}
+                  alt="Robinhood"
+                  className={`w-5 h-5 object-contain group-hover:scale-110 transition-transform ${
+                    activeTab === "main" ? "drop-shadow-[0_0_8px_#00ff7b]" : "opacity-70 group-hover:opacity-100"
+                  }`}
+                />
               </div>
-              <span className="text-[8px] font-black uppercase mt-0.5">HOME</span>
-              {activeTab === "main" && <div className="w-1 h-1 bg-[#00ff7b] rounded-full mt-0.5 shadow-[0_0_6px_#00ff7b]"></div>}
+              <span className="text-[9px] font-black uppercase tracking-tight mt-1">HOME</span>
             </div>
 
             {/* DOCS TAB */}
             <div
               onClick={() => setActiveModal("docs")}
-              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#00e5ff] transition-all relative group"
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all group ${
+                activeModal === "docs" ? "text-[#00e5ff]" : "text-gray-400 hover:text-[#00e5ff]"
+              }`}
             >
-              <div className="flex items-center">
-                <BookIcon size={18} className="text-[#00e5ff] group-hover:scale-110 transition-transform" />
-              </div>
-              <div className="flex items-center space-x-1 mt-1">
-                <span className="text-[8px] font-black uppercase text-[#00e5ff]">DOCS</span>
-              </div>
+              <BookIcon size={20} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[9px] font-black uppercase tracking-tight mt-1">DOCS</span>
             </div>
 
             {/* RANKING TAB */}
             <div
               onClick={() => handleTabChange("leaderboard")}
-              className={`flex flex-col items-center justify-center cursor-pointer transition-all ${
-                activeTab === "leaderboard" ? "text-[#00ff7b]" : "text-gray-400"
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all group ${
+                activeTab === "leaderboard" ? "text-[#00ff7b]" : "text-gray-400 hover:text-white"
               }`}
             >
-              <RankingIcon size={18} className={activeTab === "leaderboard" ? "text-[#00ff7b]" : "text-gray-400"} />
-              <span className="text-[8px] font-black uppercase mt-1">RANKING</span>
+              <RankingIcon size={20} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[9px] font-black uppercase tracking-tight mt-1">RANKING</span>
             </div>
 
-            {/* FRIENDS TAB */}
+            {/* REFS TAB */}
             <div
               onClick={() => handleTabChange("referral")}
-              className={`flex flex-col items-center justify-center cursor-pointer transition-all ${
-                activeTab === "referral" ? "text-[#00ff7b]" : "text-gray-400"
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all group ${
+                activeTab === "referral" ? "text-[#00ff7b]" : "text-gray-400 hover:text-white"
               }`}
             >
-              <Friends size={18} className={activeTab === "referral" ? "text-[#00ff7b]" : "text-gray-400"} />
-              <span className="text-[8px] font-black uppercase mt-1">FRIENDS</span>
+              <Friends size={20} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[9px] font-black uppercase tracking-tight mt-1">REFS</span>
             </div>
 
             {/* MINT NFT TAB */}
             <div
               onClick={() => setActiveModal("mint")}
-              className="flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-[#ffe600] transition-all relative group"
+              className={`flex flex-col items-center justify-center cursor-pointer transition-all relative group ${
+                activeModal === "mint" ? "text-[#ffe600]" : "text-gray-400 hover:text-[#ffe600]"
+              }`}
             >
               <span className="absolute -top-1 right-1 w-2 h-2 rounded-full bg-[#ffe600] animate-ping"></span>
-              <NftIcon size={18} className="text-[#ffe600] group-hover:scale-110 transition-transform" />
+              <NftIcon size={20} className="group-hover:scale-110 transition-transform" />
               <div className="flex items-center space-x-1 mt-0.5">
-                <span className="text-[8px] font-black uppercase text-[#ffe600]">MINT NFT</span>
-                <span className="text-[6px] text-[#ffe600] font-black bg-[#ffe600]/10 px-1 rounded border border-[#ffe600]/30">DEMO</span>
+                <span className="text-[9px] font-black uppercase tracking-tight">MINT NFT</span>
+                <span
+                  className={`text-[6px] font-black px-1 rounded border ${
+                    activeModal === "mint"
+                      ? "bg-[#ffe600]/20 text-[#ffe600] border-[#ffe600]/50"
+                      : "bg-white/5 text-gray-400 border-white/20"
+                  }`}
+                >
+                  DEMO
+                </span>
               </div>
             </div>
           </div>
