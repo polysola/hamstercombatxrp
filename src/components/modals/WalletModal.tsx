@@ -34,10 +34,8 @@ const WalletModal: React.FC<WalletModalProps> = ({
           const ethStr = ethers.formatEther(bal);
           setEthBalance(parseFloat(ethStr).toFixed(4));
         } catch (err) {
-          setEthBalance("0.0149");
+          setEthBalance("0.0000");
         }
-      } else if (isConnected) {
-        setEthBalance("0.0149");
       } else {
         setEthBalance("0.0000");
       }
@@ -61,21 +59,13 @@ const WalletModal: React.FC<WalletModalProps> = ({
           toast.success("Web3 Wallet connected successfully!");
         }
       } else {
-        // Deep link to MetaMask Mobile App if inside Telegram or Mobile WebView
+        // Redirect to MetaMask Mobile App via Deep Link without generating fake addresses
         const currentUrl = window.location.href.replace(/^https?:\/\//, "");
         const metamaskDeepLink = `https://metamask.app.link/dapp/${currentUrl}`;
-
-        // Generate demo address and toast guidance
-        const randomHex = Array.from({ length: 40 }, () =>
-          Math.floor(Math.random() * 16).toString(16)
-        ).join("");
-        const mockAddr = `0x${randomHex}`;
-        onConnectWallet(mockAddr);
-        toast.info("Opening MetaMask Mobile App via Deep Link...");
-
+        toast.info("Redirecting to MetaMask Mobile App...");
         setTimeout(() => {
           window.open(metamaskDeepLink, "_blank");
-        }, 800);
+        }, 500);
       }
     } catch (error) {
       console.error("Wallet connection error:", error);
@@ -83,13 +73,6 @@ const WalletModal: React.FC<WalletModalProps> = ({
     } finally {
       setIsConnecting(false);
     }
-  };
-
-  const handleOpenMetaMaskApp = () => {
-    const currentUrl = window.location.href.replace(/^https?:\/\//, "");
-    const metamaskDeepLink = `https://metamask.app.link/dapp/${currentUrl}`;
-    toast.info("Opening MetaMask Mobile App...");
-    window.open(metamaskDeepLink, "_blank");
   };
 
   const handleCopyAddress = () => {
@@ -125,7 +108,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
           </button>
         </div>
 
-        {/* Network Selector with single line non-wrapping text */}
+        {/* Network Selector */}
         <div className="grid grid-cols-2 gap-2 mb-4 bg-[#070510] p-1.5 rounded-2xl border border-white/10">
           <button
             onClick={() => setSelectedChain("Robinhood")}
@@ -191,22 +174,6 @@ const WalletModal: React.FC<WalletModalProps> = ({
           </div>
         </div>
 
-        {/* Telegram Mobile MetaMask Deep Link Banner */}
-        <div className="bg-[#070510] p-3 rounded-2xl border border-[#ff8800]/40 mb-4 space-y-2">
-          <p className="text-[10px] font-black text-[#ff8800] uppercase tracking-wider flex items-center space-x-1">
-            <span>🦊</span> <span>TELEGRAM METAMASK MOBILE DEEP LINK</span>
-          </p>
-          <p className="text-[10px] text-gray-300 leading-snug">
-            Playing inside Telegram App? Tap below to launch your mobile <strong>MetaMask App</strong> automatically via Deep Link.
-          </p>
-          <button
-            onClick={handleOpenMetaMaskApp}
-            className="w-full py-2.5 rounded-xl bg-[#ff8800]/20 hover:bg-[#ff8800] hover:text-black border border-[#ff8800]/50 text-[#ff8800] font-black text-xs uppercase tracking-wider transition-all"
-          >
-            🦊 Open in MetaMask Mobile App
-          </button>
-        </div>
-
         {/* 📖 DETAILED PROTOCOL GUIDE */}
         <div className="bg-[#070510]/90 p-3.5 rounded-2xl border border-[#00e5ff]/30 mb-4 space-y-1.5 text-xs">
           <p className="font-black text-[#00e5ff] uppercase flex items-center space-x-1.5 text-[11px]">
@@ -215,7 +182,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
           <ul className="text-gray-300 space-y-1 text-[10px] sm:text-[11px] list-disc list-inside">
             <li>Connects seamlessly via <strong>ethers.js</strong> on the <strong>Robinhood EVM Chain</strong>.</li>
             <li>Supports <strong>MetaMask Mobile Deep Link</strong> inside Telegram WebView.</li>
-            <li>Press <strong>Connect EVM Wallet</strong> or <strong>Open in MetaMask</strong> to synchronize.</li>
+            <li>Press <strong>Connect EVM Wallet</strong> to synchronize your wallet address.</li>
           </ul>
         </div>
 

@@ -148,7 +148,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </div>
           <div className="bg-[#070510] p-2.5 rounded-2xl border border-white/10 text-center">
             <p className="text-[8px] text-gray-400 font-bold uppercase mb-0.5">WALLET BAL</p>
-            <p className="text-xs font-black text-[#ffe600] yellow-glow truncate">{isConnected ? "0.0149 ETH" : "0.0000"}</p>
+            <p className="text-xs font-black text-[#ffe600] yellow-glow truncate">{isConnected ? "0.0000 ETH" : "0.0000"}</p>
           </div>
           <div className="bg-[#070510] p-2.5 rounded-2xl border border-white/10 text-center">
             <p className="text-[8px] text-gray-400 font-bold uppercase mb-0.5">PROFIT / HR</p>
