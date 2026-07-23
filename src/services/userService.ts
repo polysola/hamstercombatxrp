@@ -13,9 +13,10 @@ import {
     runTransaction
 } from "firebase/firestore";
 
-interface UserScore {
+export interface UserScore {
     score: number;
     username: string;
+    photoUrl?: string;
     lastUpdated?: string;
     referrer?: string;
     isPremium?: boolean;
@@ -23,14 +24,18 @@ interface UserScore {
 
 const COLLECTION_NAME = "DataXRP";
 
-export const saveUserScore = async (username: string, score: number, _minPoints?: number): Promise<void> => {
+export const saveUserScore = async (username: string, score: number, _minPoints?: number, photoUrl?: string): Promise<void> => {
     try {
         const userRef = doc(db, COLLECTION_NAME, username);
-        const userData: UserScore = {
+        const userData: Partial<UserScore> = {
             username,
             score,
             lastUpdated: new Date().toISOString()
         };
+
+        if (photoUrl) {
+            userData.photoUrl = photoUrl;
+        }
 
         await setDoc(userRef, userData, { merge: true });
         console.log(`Saved score ${score} for user ${username}`);
@@ -54,7 +59,7 @@ export const getUserScore = async (username: string): Promise<UserScore | null> 
     }
 };
 
-export const getLeaderboard = async (limitCount: number = 10): Promise<{ username: string; score: number }[]> => {
+export const getLeaderboard = async (limitCount: number = 10): Promise<{ username: string; score: number; photoUrl?: string }[]> => {
     try {
         const q = query(
             collection(db, COLLECTION_NAME),
@@ -63,13 +68,17 @@ export const getLeaderboard = async (limitCount: number = 10): Promise<{ usernam
         );
 
         const querySnapshot = await getDocs(q);
-        const leaderboard: { username: string; score: number }[] = [];
+        const leaderboard: { username: string; score: number; photoUrl?: string }[] = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            const uname = data.username || doc.id;
+            const fallbackAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(uname)}`;
+
             leaderboard.push({
-                username: data.username || doc.id,
-                score: data.score || 0
+                username: uname,
+                score: data.score || 0,
+                photoUrl: data.photoUrl || fallbackAvatar
             });
         });
 
@@ -274,14 +283,18 @@ export const resetOfflinePoints = async (username: string): Promise<void> => {
     }
 };
 
-export const saveUserScoreImmediate = async (username: string, score: number): Promise<void> => {
+export const saveUserScoreImmediate = async (username: string, score: number, photoUrl?: string): Promise<void> => {
     try {
         const userRef = doc(db, COLLECTION_NAME, username);
-        await setDoc(userRef, {
+        const updateData: any = {
             username,
             score,
             lastUpdated: new Date().toISOString()
-        }, { merge: true });
+        };
+        if (photoUrl) {
+            updateData.photoUrl = photoUrl;
+        }
+        await setDoc(userRef, updateData, { merge: true });
     } catch (error) {
         console.error("Error saving score immediately:", error);
     }

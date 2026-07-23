@@ -231,9 +231,9 @@ const App: React.FC = () => {
   // Exact Database Persistence Helper
   const persistScoreToDatabase = useCallback(async (newPoints: number) => {
     if (user?.username) {
-      await saveUserScore(user.username, newPoints, levelMinPoints[levelIndex]);
+      await saveUserScore(user.username, newPoints, levelMinPoints[levelIndex], user.photoUrl);
     }
-  }, [user?.username, levelIndex, levelMinPoints]);
+  }, [user?.username, user?.photoUrl, levelIndex, levelMinPoints]);
 
   useEffect(() => {
     if (user?.username) {
@@ -369,7 +369,7 @@ const App: React.FC = () => {
             }
           } else {
             setPoints(1380);
-            await saveUserScore(activeUsername, 1380, levelMinPoints[0]);
+            await saveUserScore(activeUsername, 1380, levelMinPoints[0], activePhotoUrl);
           }
         } catch (error) {
           setPoints(1380);
@@ -393,7 +393,7 @@ const App: React.FC = () => {
 
     const autoSaveInterval = setInterval(async () => {
       if (user?.username) {
-        await saveUserScore(user.username, points, levelMinPoints[levelIndex]);
+        await saveUserScore(user.username, points, levelMinPoints[levelIndex], user.photoUrl);
       }
     }, 30000);
 
@@ -401,7 +401,7 @@ const App: React.FC = () => {
       clearInterval(profitInterval);
       clearInterval(autoSaveInterval);
     };
-  }, [user?.username, isLoading, profitPerHour, points, levelIndex, levelMinPoints]);
+  }, [user?.username, user?.photoUrl, isLoading, profitPerHour, points, levelIndex, levelMinPoints]);
 
   const calculateTimeLeft = (targetHour: number) => {
     const now = new Date();

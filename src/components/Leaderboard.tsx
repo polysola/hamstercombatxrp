@@ -1,5 +1,4 @@
 import React from "react";
-import { logo } from "../images";
 
 interface LeaderboardUser {
   username: string;
@@ -43,10 +42,11 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
           <span className="text-[10px] text-[#00ff7b] font-bold uppercase tracking-wider">Global Rank</span>
         </div>
       </div>
-
       <div className="space-y-3">
         {users.map((user, index) => {
-          const avatarSrc = user.photoUrl || logo;
+          const avatarSrc =
+            user.photoUrl ||
+            `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.username)}`;
           return (
             <div
               key={user.username}
